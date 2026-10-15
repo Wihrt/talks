@@ -38,3 +38,10 @@ Les dépendances (Slidev, thème, Chromium pour l'export PDF) sont partagées à
 À chaque push sur `main`, GitHub Actions lance `mise run build-all` et publie `dist/` sur GitHub Pages : https://wihrt.github.io/talks/ (un talk = `https://wihrt.github.io/talks/<nom-du-talk>/`).
 
 Prérequis, une seule fois : *Settings → Pages → Source : GitHub Actions*.
+
+## Mises à jour
+
+[Renovate](https://docs.renovatebot.com) ouvre une PR par mise à jour (npm, mise, GitHub Actions). La CI construit tous les talks sur chaque PR : si le build passe, Renovate merge tout seul ; s'il casse, la PR reste ouverte.
+
+- Le lockfile est au format pnpm (`pnpm-lock.yaml`, via `.npmrc`) pour que Renovate sache le mettre à jour ; aube le lit et l'écrit tel quel.
+- Prérequis, une seule fois : installer l'app [Renovate](https://github.com/apps/renovate) sur ce repo.

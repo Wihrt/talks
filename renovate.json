@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled"
+  ],
+  "timezone": "Europe/Paris",
+  "labels": [
+    "dependencies"
+  ],
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": false,
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "description": "aube écrit le lockfile au format pnpm, mais Renovate le régénère avec pnpm, qui résout parfois les peers autrement : la CI tranche, une PR rouge reste ouverte.",
+      "matchManagers": [
+        "npm"
+      ],
+      "rangeStrategy": "bump"
+    },
+    {
+      "description": "Une seule PR pour Slidev et son thème : ils bougent ensemble.",
+      "matchPackageNames": [
+        "@slidev/**"
+      ],
+      "groupName": "slidev"
+    },
+    {
+      "description": "Node : uniquement les versions LTS (paires).",
+      "matchDepNames": [
+        "node"
+      ],
+      "allowedVersions": "/^\\d*[02468](\\.|$)/"
+    }
+  ]
+}
