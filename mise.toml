@@ -28,6 +28,19 @@ complete "talk" run="for d in */slides.md; do echo ${d%/slides.md}; done"
 '''
 run = "aube exec slidev build ${usage_talk?}/slides.md --base ./ --out ../dist/${usage_talk?}"
 
+[tasks.build-all]
+description = "Construit tous les talks dans dist/ avec une page d'index (site GitHub Pages)"
+depends = ["install"]
+run = """
+set -e
+rm -rf dist
+for d in */slides.md; do
+  talk="${d%/slides.md}"
+  aube exec slidev build "$talk/slides.md" --base ./ --out "../dist/$talk"
+done
+node scripts/build-index.mjs
+"""
+
 [tasks.export]
 description = "Exporte un talk en PDF dans dist/<talk>.pdf"
 depends = ["install"]
