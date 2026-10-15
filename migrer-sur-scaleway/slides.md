@@ -18,7 +18,7 @@ layout: cover
 <p class="eyebrow">REX · meetup</p>
 <h1>Une randonnée pas si tranquille</h1>
 <h2>Migrer sur Scaleway</h2>
-<p class="muted" style="margin-top:2rem">Arnaud Hatzenbuhler · Platform Engineer / Expert DevOps, OBS</p>
+<p class="muted" style="margin-top:2rem">Arnaud Hatzenbuhler</p>
 
 <!--
 **⏱ Ouverture : ~5 min (slides 1 à 5)**
