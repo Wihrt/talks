@@ -447,9 +447,6 @@ layout: section
 <div class="col-span-3">
 <div class="cards" style="grid-template-columns:1fr;margin-top:0"><div style="border-color:var(--brick);background:var(--brick-bg)"><div class="tags"><span class="tag t-mal">majeur</span><span class="tag t-verb">valider</span></div><b>Kapsule en 1.36, je demande 1.35</b><p>Kubernetes ne sait pas redescendre. L'API répond : « OK, je le fais. »<br>Elle n'a rien fait, heureusement. Mais elle aurait dû dire non.</p></div></div>
 <p class="fixline">Aucun check côté provider : le plan ne garantit pas l'apply. C'est encore plus vrai sur Scaleway.</p>
-<div class="mini" style="grid-template-columns:1fr;margin-top:1rem">
-<div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">accepter</span></div><b>Une mineure a cassé nos refresh</b><p>v2.83 : identité de trois ressources RDB changée. Un seul cas, et légitime.</p><span class="fix">Lire le changelog avant de monter.</span></div>
-</div>
 </div>
 <div class="col-span-2 mini" style="grid-template-columns:1fr">
 <div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">contourner</span></div><b>Dans l'API, pas dans le provider</b><p>Des semaines de décalage, parfois.</p><span class="fix">Vérifier dans le provider, pas dans l'annonce.</span></div>
@@ -468,10 +465,9 @@ layout: section
 
 **En une phrase chacun**
 - Décalage API / provider : une fonction peut exister dans l'API et pas dans le provider, parfois pendant des semaines. Exemple : la PSK du VPN site-à-site.
-- Version mineure qui casse : un seul cas en un an, la v2.83 a changé l'identité de trois ressources RDB (erreur « attributes "instance_id" and "name" are required »). Légitime sur le fond. Correction : retirer l'identité dans les états, diff hors identité à zéro comme garde-fou.
 - Doc pauvre : il m'est arrivé d'aller plus vite dans le swagger que dans la doc.
 
-*En réserve, pour les questions seulement :* l'ordre des listes qui provoque des diffs permanents (trier en amont) ; `max_unavailable` hors bornes, plan vert et apply rouge ; les logs RDB trouvés dans le SDK.
+*En réserve, pour les questions seulement :* une mineure (v2.83) qui a changé l'identité de trois ressources RDB, un seul cas et légitime ; l'ordre des listes qui provoque des diffs permanents (trier en amont) ; `max_unavailable` hors bornes, plan vert et apply rouge ; les logs RDB trouvés dans le SDK.
 -->
 
 ---
