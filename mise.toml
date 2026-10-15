@@ -1,5 +1,5 @@
 [tools]
-node = "22"
+node = "24"
 aube = "2.7"
 
 [tasks.install]
