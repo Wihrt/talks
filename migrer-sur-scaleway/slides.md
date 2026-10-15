@@ -131,17 +131,17 @@ Repères : bonne nouvelle d'abord, presque tout existe · à gauche, l'équivale
 <h1>On n'a pas refondu. On a translaté.</h1>
 
 <table class="map">
-<thead><tr><th>Sur GCP</th><th>Sur Scaleway</th><th>Statut</th><th>On en parle</th></tr></thead>
+<thead><tr><th>Sur GCP</th><th>Sur Scaleway</th><th>Statut</th></tr></thead>
 <tbody>
-<tr><td>VPC + pare-feu</td><td>VPC, Private Networks, ACL</td><td class="st"><span class="tag t-gene">partiel</span></td><td>Couche 1 · Réseau</td></tr>
-<tr><td>Cloud Storage</td><td>Object Storage</td><td class="st"><span class="tag t-gene">partiel</span></td><td>Couche 6 · Object Storage</td></tr>
-<tr><td>GKE</td><td>Kapsule</td><td class="st"><span class="tag t-gene">partiel</span></td><td>Couche 2 · Kapsule</td></tr>
-<tr><td>Cloud SQL</td><td>RDB</td><td class="st"><span class="tag t-gene">partiel</span></td><td>Couche 3 · Bases</td></tr>
-<tr><td>Artifact Registry</td><td class="gap">Container Registry, écarté → Harbor</td><td class="st"><span class="tag t-mal">manque</span></td><td>Couche 4 · Registre</td></tr>
-<tr><td>Cloud Monitoring</td><td>Cockpit, fédéré chez nous</td><td class="st"><span class="tag t-ok">mieux</span></td><td>Couche 4 · Observabilité</td></tr>
-<tr><td>Terraform provider</td><td>Terraform provider</td><td class="st"><span class="tag t-gene">partiel</span></td><td>Couche 5 · Provider</td></tr>
-<tr><td>IAM fin, par ressource</td><td>IAM au niveau du projet</td><td class="st"><span class="tag t-rock">bloquant</span></td><td>Final · Identité</td></tr>
-<tr><td>Workload Identity</td><td class="gap">rien : des clés API</td><td class="st"><span class="tag t-rock">bloquant</span></td><td>Final · Identité</td></tr>
+<tr><td>VPC + pare-feu</td><td>VPC, Private Networks, ACL</td><td class="st"><span class="tag t-gene">partiel</span></td></tr>
+<tr><td>Cloud Storage</td><td>Object Storage</td><td class="st"><span class="tag t-gene">partiel</span></td></tr>
+<tr><td>GKE</td><td>Kapsule</td><td class="st"><span class="tag t-gene">partiel</span></td></tr>
+<tr><td>Cloud SQL</td><td>RDB</td><td class="st"><span class="tag t-gene">partiel</span></td></tr>
+<tr><td>Artifact Registry</td><td class="gap">Container Registry, écarté → Harbor</td><td class="st"><span class="tag t-mal">manque</span></td></tr>
+<tr><td>Cloud Monitoring</td><td>Cockpit, fédéré chez nous</td><td class="st"><span class="tag t-ok">mieux</span></td></tr>
+<tr><td>Terraform provider</td><td>Terraform provider</td><td class="st"><span class="tag t-gene">partiel</span></td></tr>
+<tr><td>IAM fin, par ressource</td><td>IAM au niveau du projet</td><td class="st"><span class="tag t-rock">bloquant</span></td></tr>
+<tr><td>Workload Identity</td><td class="gap">rien : des clés API</td><td class="st"><span class="tag t-rock">bloquant</span></td></tr>
 </tbody>
 </table>
 
@@ -161,18 +161,20 @@ Repères : bonne nouvelle d'abord, presque tout existe · à gauche, l'équivale
 <div class="scale">
 <div><span class="tag t-gene">mineur</span><p>Pénible, mais on vit avec.</p></div>
 <div><span class="tag t-mal">majeur</span><p>Ça coûte cher si on ne le connaît pas : panne, perte, gros détour.</p></div>
-<div><span class="tag t-rock">bloquant</span><p>Ça remet en cause l'architecture ou la migration. À traiter avant de signer.</p></div>
+<div><span class="tag t-rock">bloquant</span><p>Ça remet en cause l'architecture ou la migration. </p></div>
 </div>
 <div class="verbs">
 <div style="--c:var(--accent)"><b>Garder</b><span>ce qui marchait sur GCP</span></div>
 <div style="--c:var(--ochre)"><b>Contourner</b><span>dans notre propre couche</span></div>
-<div style="--c:var(--brick)"><b>Valider</b><span>avant de signer</span></div>
+<div style="--c:var(--brick)"><b>Valider</b><span>en amont, par la mesure</span></div>
 <div style="--c:var(--muted)"><b>Accepter</b><span>et l'écrire</span></div>
 </div>
 </div>
 
 <!--
 **⏱ 30 s**
+
+Bloquant = à traiter avant de signer. Valider = avant de signer, POC ou mesure.
 
 Repères : deux étiquettes par slide · gravité : mineur, majeur, bloquant · réponse : garder, contourner, valider, accepter · peu de vrais contournements
 -->
@@ -250,13 +252,13 @@ layout: section
 ---
 
 <h1>p99 &lt; 1 s à 250 req/s : un no-go</h1>
-<div class="tags"><span class="tag t-rock">bloquant</span><span class="tag t-verb">valider avant de signer</span></div>
+<div class="tags"><span class="tag t-rock">bloquant</span><span class="tag t-verb">valider</span></div>
 
 <div class="stats" style="grid-template-columns:1fr 1fr"><div><b>p99 &lt; 1 s</b><span>sur l'API Kubernetes</span></div><div><b>250 req/s</b><span>en pic : ArgoCD et nos operators</span></div></div>
 
 <div class="cards"><div><b>Plan mutualisé</b><p>Pas de SLA.</p></div><div><b>Plans dédiés</b><p>SLA de 99,5 %.</p></div><div style="border-color:var(--brick);background:var(--brick-bg)"><b>Notre charge</b><p>No-go pour la migration, jusqu'à une solution trouvée avec Scaleway.</p></div></div>
 
-<p class="fixline">Mesurez votre charge sur l'API et validez-la avec Scaleway <strong>avant de signer</strong>.</p>
+<p class="fixline">Mesurez votre charge sur l'API et validez-la avec Scaleway.</p>
 
 <!--
 - Notre SLO sur l'API server : p99 sous la seconde, avec des pics à 250 requêtes par seconde.
@@ -359,8 +361,7 @@ layout: section
 <h1>Le reste des bases managées</h1>
 
 <div class="mini">
-<div><div class="tags"><span class="tag t-mal">majeur</span><span class="tag t-verb">contourner</span></div><b>Des erreurs de réplication invisibles</b><p>54 tables sur 159 bloquées pendant 11 jours. Rien dans les logs, pas de logs dans Cockpit.</p><span class="fix">Surveiller <code>pg_stat_subscription_stats</code>.</span></div>
-<div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">contourner</span></div><b>Les logs remplissent le disque</b><p>Même volume que les données, sans rétention par défaut.</p><span class="fix">Rétention dès la création, alerte sur le remplissage.</span></div>
+<div style="grid-column:span 2"><div class="tags"><span class="tag t-mal">majeur</span><span class="tag t-verb">contourner</span></div><b>Réplication et logs : mal configuré, rien ne prévient</b><p>54 tables sur 159 bloquées 11 jours, sans une ligne de log. Et les logs remplissent le disque : même volume que les données, sans rétention par défaut.</p><span class="fix">Surveiller <code>pg_stat_subscription_stats</code> ; rétention et alerte de remplissage dès la création.</span></div>
 <div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">contourner</span></div><b>Exporter un backup : pas natif</b><p>Backup ou snapshot selon le disque. Pour une copie hors de l'instance, Scaleway propose du serverless.</p><span class="fix">Nous : un CronJob qui déclenche le backup via l'API Scaleway.</span></div>
 <div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">valider</span></div><b>Des moteurs en retard</b><p>PostgreSQL 18 pas avant 2028. MySQL encore en 8.0.</p><span class="fix">Vérifier la version cible avant de migrer.</span></div>
 </div>
@@ -368,12 +369,12 @@ layout: section
 <!--
 **Règle : 20 s par carte. Le titre, la solution, et on passe. Un seul « c'est pénible » pour toute la slide.**
 
-**Erreurs invisibles** (celui qui fait mal)
+**Réplication et logs** (celui qui fait mal, une seule carte : si c'est mal configuré, on a des surprises)
 - 54 tables sur 159 bloquées en synchronisation depuis onze jours, 36 449 erreurs comptées, et rien dans les logs de l'instance.
 - `log_min_messages = log` n'est pas modifiable, et ERROR est sous LOG dans l'ordre de sévérité du serveur. `pg_stat_subscription` garde les dernières valeurs connues : une souscription morte peut paraître vivante.
 - Surveiller `pg_stat_subscription_stats` côté RDB, lire la cause côté publisher.
 
-**Logs** : pas de métrique à part pour leur taille. Un disque peut se remplir sans données.
+- Logs : pas de métrique à part pour leur taille. Un disque peut se remplir sans données.
 
 **Exporter un backup** (~40 s, pas plus) : le planning de backup fait un backup sur disque local, un snapshot sur disque bloc. Pour une copie exportée, Scaleway a une réponse : du serverless qui appelle la CLI ou l'API. C'est faisable, c'est juste pas natif. Nous, sur Kubernetes : un CronJob qui appelle directement l'API Scaleway pour déclencher le backup. Pas de dump vers un bucket. La restauration passe aussi par l'API. Au passage : pas d'autoresize des disques, donc surveiller le remplissage.
 
@@ -439,31 +440,16 @@ layout: section
 
 ---
 
-<h1>Le provider ne respecte pas semver</h1>
-<div class="tags"><span class="tag t-mal">majeur</span><span class="tag t-verb">accepter</span></div>
-
-<div style="font-family:Archivo,sans-serif;font-size:2.8rem;font-weight:800;font-stretch:80%;line-height:1.1;margin-top:2rem">Une version mineure<br><em style="color:var(--brick);font-style:normal">peut casser.</em></div>
-
-<p class="lead mt-8">Exemple : la v2.83 change l'identité de trois ressources RDB, sans migration. Tous les refresh RDB tombent.</p>
-
-<p class="fixline">Traiter chaque montée du provider, même mineure, comme un changement à risque.</p>
-
-<!--
-- Erreur « attributes "instance_id" and "name" are required » sur toute stack qui gère des users ou des bases RDB.
-- La v2.83 a changé l'identité de trois ressources RDB sans monter la version de schéma ni fournir de migration.
-- Correction : retirer l'identité des instances concernées dans les états, avec un diff des états hors identité égal à zéro comme garde-fou.
-- Cela dit : le provider couvre presque tout. Une organisation entière se reconstruit depuis le code. On y revient à la fin.
--->
-
----
-
 <p class="eyebrow">Provider · en rafale</p>
-<h1>Le provider laisse tout passer</h1>
+<h1>Le provider est une passoire</h1>
 
 <div class="grid grid-cols-5 gap-6 mt-2">
 <div class="col-span-3">
 <div class="cards" style="grid-template-columns:1fr;margin-top:0"><div style="border-color:var(--brick);background:var(--brick-bg)"><div class="tags"><span class="tag t-mal">majeur</span><span class="tag t-verb">valider</span></div><b>Kapsule en 1.36, je demande 1.35</b><p>Kubernetes ne sait pas redescendre. L'API répond : « OK, je le fais. »<br>Elle n'a rien fait, heureusement. Mais elle aurait dû dire non.</p></div></div>
-<p class="fixline">Le provider ne valide rien : c'est l'API qui sert de garde-fou. Vérifier l'état réel après chaque opération.</p>
+<p class="fixline">Aucun check côté provider : le plan ne garantit pas l'apply. C'est encore plus vrai sur Scaleway.</p>
+<div class="mini" style="grid-template-columns:1fr;margin-top:1rem">
+<div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">accepter</span></div><b>Une mineure a cassé nos refresh</b><p>v2.83 : identité de trois ressources RDB changée. Un seul cas, et légitime.</p><span class="fix">Lire le changelog avant de monter.</span></div>
+</div>
 </div>
 <div class="col-span-2 mini" style="grid-template-columns:1fr">
 <div><div class="tags"><span class="tag t-gene">mineur</span><span class="tag t-verb">contourner</span></div><b>Dans l'API, pas dans le provider</b><p>Des semaines de décalage, parfois.</p><span class="fix">Vérifier dans le provider, pas dans l'annonce.</span></div>
@@ -474,12 +460,15 @@ layout: section
 <!--
 **⏱ Une seule anecdote : la 1.35. Le reste en une phrase chacun.**
 
+**Le message :** le provider ne fait aucun check, il appelle le SDK Go et laisse l'API trancher. Un plan vert ne garantit pas l'apply, et c'est encore plus vrai sur Scaleway.
+
 **L'anecdote** (1 min max)
 - J'avais un Kapsule en 1.36, et par erreur j'ai demandé une 1.35. Ceux qui font du Kubernetes savent que c'est impossible : l'API devrait refuser.
 - L'API m'a dit oui. Elle n'a rien fait, rassurez-vous. Mais le fait qu'elle dise oui, c'est le problème : le provider ne fait aucune validation, il appelle le SDK Go et laisse l'API trancher. Le plan ne veut pas tout dire.
 
 **En une phrase chacun**
 - Décalage API / provider : une fonction peut exister dans l'API et pas dans le provider, parfois pendant des semaines. Exemple : la PSK du VPN site-à-site.
+- Version mineure qui casse : un seul cas en un an, la v2.83 a changé l'identité de trois ressources RDB (erreur « attributes "instance_id" and "name" are required »). Légitime sur le fond. Correction : retirer l'identité dans les états, diff hors identité à zéro comme garde-fou.
 - Doc pauvre : il m'est arrivé d'aller plus vite dans le swagger que dans la doc.
 
 *En réserve, pour les questions seulement :* l'ordre des listes qui provoque des diffs permanents (trier en amont) ; `max_unavailable` hors bornes, plan vert et apply rouge ; les logs RDB trouvés dans le SDK.
@@ -625,16 +614,16 @@ layout: section
 <div class="cards">
 <div style="border-color:var(--brick)"><b>Identité</b><p>Concevez votre découpage de projets et vos permissions avant tout le reste. C'est lui qui fait votre sécurité.</p></div>
 <div style="border-color:var(--brick)"><b>Rotation</b><p>Sans Workload Identity, chaque clé doit tourner. Outillez la rotation dès le premier jour.</p></div>
-<div style="border-color:var(--ochre)"><b>Flux</b><p>Pas de 100 % privé, LB et gateways zonaux, réplication par Internet. Dessinez vos flux avant de signer.</p></div>
+<div style="border-color:var(--ochre)"><b>Flux</b><p>Pas de 100 % privé, LB et gateways zonaux, réplication par Internet. Dessinez vos flux dès le départ.</p></div>
 </div>
 
-<p class="fixline">Et validez vos no-go avant de signer : charge sur l'API, zones, versions des moteurs.</p>
+<p class="fixline">Et validez vos no-go : charge sur l'API, zones, versions des moteurs.</p>
 
 <!--
 Repères : trois choses à retenir · identité, rotation, flux · le reste se gère quand on le connaît
 
 - Quotas très bas par défaut : prévoir les demandes de hausse (acceptées sans difficulté).
-- Faites des POC avant de signer : Scaleway est ouvert là-dessus.
+- Tout ça avant de signer. Faites des POC : Scaleway est ouvert là-dessus.
 - Flux : pas de facturation du trafic chez Scaleway, c'est un bon point.
 - Si vous n'êtes pas sur Kubernetes, deux options : voir avec Scaleway ce qui est faisable pour vos charges, ou amener vos propres services à la place des services managés. D'autres clients l'ont fait. Ça a un coût d'exploitation.
 
@@ -652,7 +641,7 @@ Repères : trois choses à retenir · identité, rotation, flux · le reste se g
 <div class="cards">
 <div><b>Concevoir l'IAM d'abord</b><p>Plus de temps sur le découpage des applications et des permissions, avant tout le reste.</p></div>
 <div><b>Moins de clusters, plus gros</b><p>Avec notre couche de sécurité, des clusters mutualisés auraient coûté moins cher.</p></div>
-<div><b>Le go/no-go dès le jour 1</b><p>Charge API, zones, réplication des bases : mesurées et validées avant de signer.</p></div>
+<div><b>Le go/no-go dès le jour 1</b><p>Charge API, zones, réplication des bases : mesurées et validées dès le départ.</p></div>
 </div>
 
 <!--
