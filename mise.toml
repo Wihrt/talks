@@ -1,0 +1,38 @@
+[tools]
+node = "22"
+aube = "2.7"
+
+[tasks.install]
+description = "Installe les dépendances (Slidev, thème, Chromium pour l'export)"
+run = "aube install"
+
+[tasks.list]
+description = "Liste les talks du repo"
+run = "for d in */slides.md; do echo \"${d%/slides.md}\"; done"
+
+[tasks.dev]
+description = "Lance Slidev en local pour un talk"
+depends = ["install"]
+usage = '''
+arg "<talk>" help="Dossier du talk, par ex. migrer-sur-scaleway"
+complete "talk" run="for d in */slides.md; do echo ${d%/slides.md}; done"
+'''
+run = "aube exec slidev ${usage_talk?}/slides.md --open"
+
+[tasks.build]
+description = "Construit la version web statique d'un talk dans dist/<talk>"
+depends = ["install"]
+usage = '''
+arg "<talk>" help="Dossier du talk"
+complete "talk" run="for d in */slides.md; do echo ${d%/slides.md}; done"
+'''
+run = "aube exec slidev build ${usage_talk?}/slides.md --base ./ --out ../dist/${usage_talk?}"
+
+[tasks.export]
+description = "Exporte un talk en PDF dans dist/<talk>.pdf"
+depends = ["install"]
+usage = '''
+arg "<talk>" help="Dossier du talk"
+complete "talk" run="for d in */slides.md; do echo ${d%/slides.md}; done"
+'''
+run = "mkdir -p dist && aube exec slidev export ${usage_talk?}/slides.md --output dist/${usage_talk?}.pdf"
