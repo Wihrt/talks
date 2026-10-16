@@ -991,6 +991,7 @@ Repères : pas une guerre de religion · deux philosophies : envelopper vs orche
   - Les stacks (`terragrunt.stack.hcl`, blocs `unit` avec `values`) : régénérées par `terragrunt stack generate`, donc vivantes comme un bundle. Mais pas de formulaire ni de prompt, et le code généré va dans `.terragrunt-stack/`, que la doc conseille d'ignorer dans git : on ne relit pas en MR ce qui tourne.
 - Côté Terramate : un contrat typé, un formulaire (`terramate ui`), du code commité et relu. C'est là que Terramate est devant.
 - Les liens, à l'avantage de Terragrunt : `dependency` lit les vrais outputs du state à l'exécution. Un export de bundle Terramate est calculé au `generate`, depuis les entrées : pas d'ID réel issu d'un `apply`. Pour ça, Terramate repasse par des `data` ou du remote state.
+- Les mêmes infra et scénario existent en Terragrunt (`terramate/demo-terragrunt`) et en Terraspace (`terramate/demo-terraspace`), pour comparer sur pièces. Chaque README a une section « Différences avec Terramate ».
 - Mon avis : Terramate est plus fort pour reprendre un existant (on pose une stack sur chaque root module, sans rien réécrire), Terragrunt est plus confortable pour partir de zéro.
 -->
 

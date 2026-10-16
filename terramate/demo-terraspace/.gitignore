@@ -1,0 +1,7 @@
+.terraspace-cache/
+.terraform/
+.terraform.lock.hcl
+.state/
+log/
+vendor/
+Gemfile.lock
