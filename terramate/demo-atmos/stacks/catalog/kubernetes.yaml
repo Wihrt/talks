@@ -1,0 +1,16 @@
+components:
+  terraform:
+    kubernetes:
+      metadata:
+        component: cluster              # le dossier components/terraform/cluster
+      # Le réseau d'abord : ordre explicite entre composants.
+      dependencies:
+        components:
+          - name: reseau
+        # Le module est hors du dossier du composant : sans cette ligne, `describe affected` ne le voit pas.
+        folders:
+          - modules/cluster
+      vars:
+        version_k8s: "1.34"
+        # La vraie sortie de reseau, lue dans son état.
+        vpc_id: !terraform.state reseau vpc_id

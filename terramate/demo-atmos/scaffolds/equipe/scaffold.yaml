@@ -1,0 +1,28 @@
+apiVersion: atmos/v1
+kind: AtmosScaffoldConfig
+metadata:
+  name: equipe
+  description: Espace d'équipe (stockage, base) rattaché à une zone
+spec:
+  fields:
+    - name: equipe
+      label: Nom de l'équipe
+      type: input
+      required: true
+      validation:
+        pattern: "^[a-z0-9]+$"
+        message: Minuscules et chiffres.
+    - name: zone
+      label: Zone réseau
+      type: input
+      default: paris
+    - name: base
+      label: Une base PostgreSQL ?
+      type: confirm
+      default: false
+    - name: taille_base
+      label: Gabarit de la base
+      type: select
+      options: [S, M, L]
+      default: S
+      when: "answers.base == true"

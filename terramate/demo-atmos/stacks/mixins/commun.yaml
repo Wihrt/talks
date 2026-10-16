@@ -1,0 +1,17 @@
+# Valeurs et génération partagées par toute la stack : l'équivalent de globals.tm.hcl + imports/.
+vars:
+  organisation: demo
+  region: fr-par
+
+terraform:
+  backend_type: local
+  backend:
+    local:
+      # Un backend par composant, la clé dérive de la stack et du composant.
+      # En vrai : un backend S3 avec key = "{{ .atmos_stack }}/{{ .atmos_component }}".
+      # ETAT_DEMO : chemin absolu, pour que `--affected` retrouve l'état depuis son worktree git temporaire.
+      path: '{{ env "ETAT_DEMO" | default "../../../.state" }}/{{ .atmos_stack }}/{{ .atmos_component }}/terraform.tfstate'
+  generate:
+    atmos_versions.tf:
+      terraform:
+        required_version: "~> 1.10"

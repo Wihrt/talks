@@ -991,7 +991,7 @@ Repères : pas une guerre de religion · deux philosophies : envelopper vs orche
   - Les stacks (`terragrunt.stack.hcl`, blocs `unit` avec `values`) : régénérées par `terragrunt stack generate`, donc vivantes comme un bundle. Mais pas de formulaire ni de prompt, et le code généré va dans `.terragrunt-stack/`, que la doc conseille d'ignorer dans git : on ne relit pas en MR ce qui tourne.
 - Côté Terramate : un contrat typé, un formulaire (`terramate ui`), du code commité et relu. C'est là que Terramate est devant.
 - Les liens, à l'avantage de Terragrunt : `dependency` lit les vrais outputs du state à l'exécution. Un export de bundle Terramate est calculé au `generate`, depuis les entrées : pas d'ID réel issu d'un `apply`. Pour ça, Terramate repasse par des `data` ou du remote state.
-- Les mêmes infra et scénario existent en Terragrunt (`terramate/demo-terragrunt`) et en Terraspace (`terramate/demo-terraspace`), pour comparer sur pièces. Chaque README a une section « Différences avec Terramate ».
+- Les mêmes infra et scénario existent en Terragrunt (`terramate/demo-terragrunt`), en Terraspace (`terramate/demo-terraspace`) et en Atmos (`terramate/demo-atmos`), pour comparer sur pièces. Chaque README a une section « Différences avec Terramate ».
 - Mon avis : Terramate est plus fort pour reprendre un existant (on pose une stack sur chaque root module, sans rien réécrire), Terragrunt est plus confortable pour partir de zéro.
 -->
 
@@ -1031,6 +1031,45 @@ Repères : un framework, pas un orchestrateur · il compile du Terraform à part
 - Activité : dernière version 2.2.20 le 13 octobre 2025, une dizaine de commits par an en 2024 et en 2025. Le dépôt n'est pas archivé.
 - Il existe une offre Terraspace Cloud (dashboard, historique, droits). Je ne l'ai pas regardée.
 - Démo complète : `terramate/demo-terraspace`, même infra, même scénario.
+-->
+
+---
+
+<p class="eyebrow">Le plus proche</p>
+<h1>Et Atmos ?</h1>
+
+<div class="cols-code" style="margin-top:.6rem">
+<div>
+<p class="lbl">Ce qu'il fait bien</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="y">du YAML hiérarchique : imports, héritage</li>
+<li class="y">les vrais outputs du state</li>
+<li class="y">le changé, dépendants compris</li>
+</ul>
+</div>
+<div>
+<p class="lbl">Ce qui coince</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="n">les modules, à déclarer à la main</li>
+<li class="n">pas de plan avant le premier apply</li>
+<li class="n">le backend généré, non relu</li>
+</ul>
+</div>
+</div>
+
+<p class="fixline">Le concurrent le plus complet, et très actif. Mais tout passe par du YAML.</p>
+
+<!--
+Repères : Cloud Posse, Apache-2.0 · des composants (root modules) et des stacks en YAML · c'est le vrai concurrent de Terramate, celui qu'on vous citera
+
+- Le modèle : des composants Terraform réutilisables, configurés par des stacks YAML. Imports, héritage, composants abstraits (`metadata.inherits`) : l'équivalent des globals et des bundles, en YAML.
+- L'ordre : `dependencies.components` dans le YAML, et `atmos terraform apply --all -s prod` applique dans l'ordre (`--max-concurrency` pour paralléliser, 1 par défaut).
+- Les liens : `!terraform.state zone-paris subnet_id` lit le vrai output dans le state, comme le `dependency` de Terragrunt. Revers : pas de mock, donc `plan --all` échoue tant que rien n'est appliqué.
+- Le changé : `atmos describe affected --base main`, et `--include-dependents` pour remonter les composants qui en dépendent. Terramate a l'équivalent (`run --include-all-dependents`, 0.17.3), pas montré en démo. Mais un module local hors du dossier du composant n'est pas vu : il faut le déclarer (`dependencies.folders`). Terramate le suit tout seul.
+- Le self-service : `atmos scaffold` (expérimental) pose des questions (`input`, `select`, `confirm`, validation) et écrit le YAML d'une équipe. Le YAML hérite ensuite du catalogue : il reste vivant, comme une instance de bundle. Pas de liens typés entre instances, pas de promotion.
+- Comme Terragrunt, il compare dans un checkout git temporaire : avec un state local relatif, `describe affected` se trompe. Il faut un state distant (la démo utilise un chemin absolu).
+- Activité : v1.232.0 le 13 octobre 2026, une version ou une release candidate tous les quelques jours en octobre 2026. Il fait aussi Helmfile, Packer, Ansible.
+- Démo complète : `terramate/demo-atmos`, même infra, même scénario.
 -->
 
 ---
