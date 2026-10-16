@@ -963,25 +963,44 @@ layout: section
 <p class="eyebrow">La question qui vient toujours</p>
 <h1>Et Terragrunt ?</h1>
 
-<table class="map">
-<thead><tr><th></th><th>Terragrunt</th><th>Terramate</th></tr></thead>
-<tbody>
-<tr><td>Rapport à Terraform</td><td>l'enveloppe : <code>terragrunt plan</code></td><td>le lance : <code>terramate run -- tofu plan</code></td></tr>
-<tr><td>Le code</td><td><code>terragrunt.hcl</code> + modules, résolu à l'exécution</td><td>Terraform pur + code généré, commité</td></tr>
-<tr><td>Ordre entre unités</td><td><code>dependency</code>, avec passage d'outputs</td><td><code>after</code> / <code>before</code>, sans passage d'outputs</td></tr>
-<tr><td>Ne lancer que le changé</td><td>natif, par git : <code>--filter-affected</code></td><td>natif, par git : <code>--changed</code></td></tr>
-<tr><td>Self-service</td><td>stacks : régénérées, sans formulaire, non commitées</td><td>bundles : formulaire, régénérés, commités</td></tr>
-<tr><td>Liens</td><td><code>dependency</code> : les vrais outputs du state</td><td>exports : calculés au <code>generate</code></td></tr>
-<tr><td>CI clé en main</td><td>Terragrunt Scale (payant au-delà de 25 unités)</td><td>à outiller soi-même</td></tr>
-<tr><td>Point fort</td><td>partir de zéro</td><td>reprendre l'existant : <code>create --all-terraform</code></td></tr>
-</tbody>
-</table>
+<div class="cols-code" style="margin-top:.6rem">
+<div>
+<p class="lbl">Ce qu'il fait bien</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="y">les vrais outputs du state</li>
+<li class="y">le changé par git, suppressions comprises</li>
+<li class="y">des stacks régénérées</li>
+</ul>
+</div>
+<div>
+<p class="lbl">Ce qui coince</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="n">pas de formulaire pour les équipes</li>
+<li class="n">le code généré, non relu</li>
+<li class="n">un DSL de plus : <code>terragrunt.hcl</code></li>
+</ul>
+</div>
+</div>
 
-<p class="fixline">La vraie différence : le platform engineering. Et ils cohabitent : Terramate sait orchestrer un repo Terragrunt.</p>
+<p class="fixline">La vraie différence : le platform engineering. Et Terramate sait orchestrer un repo Terragrunt.</p>
 
 <p class="links"><a href="https://github.com/gruntwork-io/terragrunt">github.com/gruntwork-io/terragrunt</a> · <a href="https://docs.terragrunt.com/">docs.terragrunt.com</a></p>
 
 <!--
+
+Le tableau complet, à dire si on a le temps :
+
+| | Terragrunt | Terramate |
+|---|---|---|
+| Rapport à Terraform | l'enveloppe : `terragrunt plan` | le lance : `terramate run -- tofu plan` |
+| Le code | `terragrunt.hcl` + modules, résolu à l'exécution | Terraform pur + code généré, commité |
+| Ordre | `dependency`, avec passage d'outputs | `after` / `before`, sans passage d'outputs |
+| Le changé | `--filter-affected`, par git | `--changed`, par git |
+| Self-service | stacks : régénérées, sans formulaire, non commitées | bundles : formulaire, régénérés, commités |
+| Liens | `dependency` : les vrais outputs du state | exports : calculés au `generate` |
+| CI clé en main | Terragrunt Scale (payant au-delà de 25 unités) | à outiller soi-même |
+| Point fort | partir de zéro | reprendre l'existant : `create --all-terraform` |
+
 Repères : pas une guerre de religion · deux philosophies : envelopper vs orchestrer · on peut combiner
 
 - Le vrai point fort de Terragrunt : `dependency` qui passe les outputs d'une unité à l'autre. Chez Terramate, l'équivalent (output sharing) existe mais reste à part ; on fait souvent avec des data sources ou du remote state.
