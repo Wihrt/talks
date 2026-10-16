@@ -56,27 +56,23 @@ Repères : OBS aujourd'hui · Terramate en prod chez Additi : tout le SI sur Sca
 <div>
 
 ```text
-infra/                ← root module
-├── main.tf           ← ressources, appels de modules
-├── variables.tf
-├── outputs.tf
-├── backend.tf        ← où vit le state
+infra/           ← root module
+├── main.tf
+├── backend.tf   ← où vit le state
 └── prod.tfvars
 modules/
-└── cluster/          ← module : réutilisable, sans state
-    ├── main.tf
-    └── variables.tf
+└── cluster/     ← module, sans state
 ```
 
 </div>
 <div class="mini" style="grid-template-columns:1fr">
-<div><b>Root module</b><p>Le dossier où l'on lance <code>terraform plan</code>. Un root module, un state.</p></div>
-<div><b>Module</b><p>Une brique appelée par <code>source</code>. Il n'a pas de state : il vit dans celui de l'appelant.</p></div>
-<div><b>State · backend</b><p>Ce que Terraform sait du réel, stocké à distance, avec un verrou.</p></div>
+<div><b>Root module</b><p>Là où l'on lance <code>terraform plan</code>. Un state.</p></div>
+<div><b>Module</b><p>Une brique appelée par <code>source</code>, sans state propre.</p></div>
+<div><b>State · backend</b><p>Ce que Terraform sait du réel, avec un verrou.</p></div>
 </div>
 </div>
 
-<p class="fixline">Terraform travaille sur un root module à la fois. Tout le reste en découle.</p>
+<p class="fixline">Terraform travaille sur un root module à la fois.</p>
 
 <!--
 **⏱ Le contexte : ~9 min**
@@ -95,19 +91,10 @@ Repères : trois mots, et c'est tout ce qu'il faut pour la suite · l'unité de 
 <h1>Les environnements : trois écoles</h1>
 
 <div class="mini three">
-<div><b>Workspaces</b><p>Un dossier, un state par workspace : <code>terraform workspace select prod</code>.</p><span class="fix">le même code partout, impossible de faire diverger la structure</span></div>
-<div><b>Un tfvars par environnement</b><p><code>-var-file=prod.tfvars</code> et <code>-backend-config=prod.hcl</code>.</p><span class="fix">il ne faut pas se tromper de fichier</span></div>
-<div><b>Un dossier par environnement</b><p><code>envs/dev</code>, <code>envs/prod</code>, qui appellent les mêmes modules.</p><span class="fix">explicite, mais le dossier est dupliqué</span></div>
+<div><b>Workspaces</b><p>Un dossier, un state par workspace.</p><span class="fix">même structure partout</span></div>
+<div><b>Un tfvars par env</b><p><code>-var-file</code> et <code>-backend-config</code>.</p><span class="fix">ne pas se tromper de fichier</span></div>
+<div><b>Un dossier par env</b><p><code>envs/dev</code>, <code>envs/prod</code>, mêmes modules.</p><span class="fix">explicite, mais dupliqué</span></div>
 </div>
-
-```text
-envs/
-├── dev/    main.tf  backend.tf  ← root module, state dev
-└── prod/   main.tf  backend.tf  ← root module, state prod
-modules/
-├── reseau/
-└── cluster/
-```
 
 <p class="fixline">Quelle que soit l'école : une commande, un root module, un state.</p>
 
@@ -148,14 +135,10 @@ Repères : tout le monde a commencé comme ça · ça marche, jusqu'au jour où 
 
 ```text
 socle/
-├── reseau/          ← state socle/reseau
-└── kubernetes/      ← lit le state du réseau
+├── reseau/       ← un state
+└── kubernetes/   ← un autre
 equipes/
 └── paiement/
-    ├── base/
-    └── stockage/
-modules/
-└── cluster/
 ```
 
 </div>
@@ -165,11 +148,7 @@ modules/
 ```hcl
 data "terraform_remote_state" "reseau" {
   backend = "s3"
-  config = {
-    bucket = "demo-tfstate"
-    region = "fr-par"
-    key    = "socle/reseau/terraform.tfstate"
-  }
+  config  = { key = "socle/reseau/..." }
 }
 
 module "cluster" {
@@ -181,58 +160,49 @@ module "cluster" {
 </div>
 </div>
 
-<p class="fixline">Le cluster dépend du réseau. Terraform lit son state, mais ne sait pas qu'il faut l'appliquer avant.</p>
+<p class="fixline">Le lien existe, par un <code>data</code>. L'ordre d'application, c'est à nous de le garantir.</p>
 
 <!--
 Repères : techniquement, ça marche très bien · des states petits, rapides, des droits par périmètre · mais la dépendance n'est écrite nulle part où Terraform pourrait la voir
 
 - Chaque dossier a son backend, avec sa propre clé : quatre states indépendants.
-- Les dépendances passent par `terraform_remote_state` ou par des data sources (on relit le VPC par son nom). Dans les deux cas, c'est une lecture, pas une relation.
+- Les liens passent par des `data` : `terraform_remote_state`, ou une data source qui relit le VPC par son nom. Ça marche, mais c'est une lecture à l'exécution : Terraform ne s'en sert pas pour ordonner les root modules entre eux.
 - Si le réseau n'est pas encore appliqué, le plan du cluster échoue : l'output n'existe pas. C'est l'humain qui sait dans quel ordre lancer.
 -->
 
 ---
 
 <p class="eyebrow">La limite</p>
-<h1>Terraform n'orchestre rien entre root modules</h1>
+<h1>Orchestration native ou blast radius maîtrisé</h1>
 
 <div class="cols-code" style="margin-top:.6rem">
 <div>
-<p class="lbl">Dans un root module</p>
+<p class="lbl">Un root module</p>
 <ul class="yesno" style="font-size:1.1rem">
-<li class="y">le graphe de dépendances</li>
-<li class="y">l'ordre de création</li>
-<li class="y">le parallélisme</li>
-<li class="y">un plan pour tout</li>
+<li class="y">orchestration native</li>
+<li class="n">blast radius : tout</li>
 </ul>
 </div>
 <div>
-<p class="lbl">Entre root modules</p>
+<p class="lbl">Plusieurs root modules</p>
 <ul class="yesno" style="font-size:1.1rem">
-<li class="n">l'ordre</li>
-<li class="n">ne lancer que ce qui a changé</li>
-<li class="n">le parallélisme</li>
-<li class="n">la configuration partagée</li>
+<li class="y">blast radius : un périmètre</li>
+<li class="n">orchestration : à écrire</li>
 </ul>
 </div>
 </div>
 
-```bash
-for d in socle/reseau socle/kubernetes equipes/*/*; do   # l'ordre ? à la main
-  terraform -chdir="$d" init -input=false && terraform -chdir="$d" apply
-done
-```
-
-<p class="fixline">On peut tout faire soi-même : une boucle, un Makefile, un job CI par dossier. Mais c'est à nous de l'écrire, et de le tenir.</p>
+<p class="fixline">Entre root modules, les liens passent par des <code>data</code>. L'ordre : une boucle, un Makefile, la CI. À nous.</p>
 
 <!--
-Repères : LE message de cette partie · ce n'est pas impossible, c'est absent · Terraform s'arrête au root module, l'orchestration est un trou dans l'outillage
+Repères : LE message de cette partie · Terraform orchestre très bien, mais seulement à l'intérieur d'un root module · et là, il ne garantit rien sur le blast radius · découper règle le blast radius, et fait sortir l'orchestration de Terraform
 
-- À l'intérieur d'un root module, Terraform construit un graphe : il sait que le cluster attend le VPC, et il applique en parallèle ce qui est indépendant (`-parallelism`, 10 par défaut).
-- Entre deux root modules, il n'y a pas de graphe. `terraform` ne connaît que le dossier courant.
-- Donc chacun écrit son orchestration : une boucle bash, un Makefile, un job GitLab par dossier avec des `needs`. Ça marche, mais l'ordre est codé en dur, la liste des dossiers aussi, et chaque nouveau root module oblige à toucher la CI.
+- Dans un root module, Terraform construit un graphe : il sait que le cluster attend le VPC, et il applique en parallèle ce qui est indépendant (`-parallelism`, 10 par défaut). L'orchestration est interne, et elle marche.
+- Mais tout est dans le même state : un `apply` peut toucher n'importe quelle ressource, et les droits de la CI couvrent tout. Terraform ne limite rien.
+- On découpe : chaque root module a son state, ses droits, un périmètre restreint. Les liens restent possibles, avec des `data` (data sources, `terraform_remote_state`).
+- Mais le graphe s'arrête au root module : `terraform` ne connaît que le dossier courant. L'ordre, ne lancer que le changé, le parallélisme entre dossiers : c'est nous qui les écrivons. Ça marche, mais l'ordre est codé en dur, la liste des dossiers aussi, et chaque nouveau root module oblige à toucher la CI.
 - HashiCorp a sa réponse : Terraform Stacks. Mais c'est lié à HCP Terraform / Terraform Enterprise, pas à la CLI seule, et ça n'existe pas dans OpenTofu.
-- C'est ce trou que comble Terramate.
+- Terramate, c'est garder le découpage, et retrouver une orchestration outillée.
 -->
 
 ---
