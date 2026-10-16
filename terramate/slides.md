@@ -997,6 +997,44 @@ Repères : pas une guerre de religion · deux philosophies : envelopper vs orche
 
 ---
 
+<p class="eyebrow">L'autre question</p>
+<h1>Et Terraspace ?</h1>
+
+<div class="cols-code" style="margin-top:.6rem">
+<div>
+<p class="lbl">Ce qu'il fait bien</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="y">l'ordre, déduit des <code>output()</code></li>
+<li class="y">les vrais outputs du state</li>
+<li class="y">des tfvars par environnement</li>
+</ul>
+</div>
+<div>
+<p class="lbl">Ce qui manque</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="n">ne lancer que le changé</li>
+<li class="n">le self-service</li>
+<li class="n">relire le code généré</li>
+</ul>
+</div>
+</div>
+
+<p class="fixline">Un framework Ruby, peu actif : dernière version en octobre 2025.</p>
+
+<!--
+Repères : un framework, pas un orchestrateur · il compile du Terraform à partir de templates ERB · bien pensé en 2020, peu de mouvement depuis
+
+- Terraspace (BoltOps), une gem Ruby, Apache-2.0. Il compile chaque stack dans `.terraspace-cache/<env>/` : templates ERB, `config/terraform/` copié partout, tfvars en couches (`base`, `dev`, `prod`) choisies par `TS_ENV`.
+- L'ordre : `terraspace all up` déduit le graphe des `output("zone.subnet_id")` écrits dans les tfvars, et déploie par lots. Comme Terragrunt, il lit les vrais outputs du state ; avant le premier déploiement, il faut des `mock:`.
+- Ce qui manque, vu en démo : pas d'équivalent de `--changed` (un `all plan` planifie toutes les stacks), pas de tags, pas de catalogue ni de formulaire (une équipe = un copier-coller de dossiers), et le code généré est dans un cache ignoré par git : on ne relit pas en MR ce qui tourne.
+- Installation : la gem dépend d'une extension C++ (`eventmachine`) : il faut un compilateur sur le poste ou dans l'image de CI. Pas un binaire unique.
+- Activité : dernière version 2.2.20 le 13 octobre 2025, une dizaine de commits par an en 2024 et en 2025. Le dépôt n'est pas archivé.
+- Il existe une offre Terraspace Cloud (dashboard, historique, droits). Je ne l'ai pas regardée.
+- Démo complète : `terramate/demo-terraspace`, même infra, même scénario.
+-->
+
+---
+
 <p class="eyebrow">À retenir</p>
 <h1>Trois fois oui, à la carte</h1>
 
