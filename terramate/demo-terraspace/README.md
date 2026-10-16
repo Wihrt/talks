@@ -116,3 +116,9 @@ Uniquement ce qui a été observé dans les tests ci-dessus.
 - Sélection : `all up --stacks <nom>` inclut les dépendances ; pas d'équivalent de `--changed` (aucune occurrence dans `cli.rb`), ni de tags.
 - Pas de catalogue/bundle/UI : une équipe est un copier-coller de dossiers.
 - Installation : une gem Ruby avec une extension native (compilateur requis) au lieu d'un binaire unique.
+
+## Liens
+
+- Terraspace : code sur [github.com/boltops-tools/terraspace](https://github.com/boltops-tools/terraspace), documentation sur [terraspace.cloud/docs](https://terraspace.cloud/docs/)
+- OpenTofu : code sur [github.com/opentofu/opentofu](https://github.com/opentofu/opentofu), documentation sur [opentofu.org/docs](https://opentofu.org/docs/)
+- La démo Terramate de référence : [`../demo`](../demo)

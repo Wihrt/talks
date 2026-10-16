@@ -109,3 +109,8 @@ Si le live casse : chaque étape a sa sortie attendue dans les slides. Garder un
 
 - Les blocs `script` sont encore derrière `experiments = ["scripts"]`.
 - 0.17.3 : quand un bundle crée une stack, l'ordre des tags lu au premier `generate` peut différer du suivant. Un générateur qui écrit `terramate.stack.tags` produit alors un fichier « périmé » et `terramate run` refuse de tourner. D'où l'absence des tags dans `_terramate_locals.tf`.
+
+## Liens
+
+- Terramate : code sur [github.com/terramate-io/terramate](https://github.com/terramate-io/terramate), documentation sur [terramate.io/docs](https://terramate.io/docs/)
+- OpenTofu : code sur [github.com/opentofu/opentofu](https://github.com/opentofu/opentofu), documentation sur [opentofu.org/docs](https://opentofu.org/docs/)

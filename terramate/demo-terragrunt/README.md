@@ -128,3 +128,9 @@ Uniquement ce qui a été observé en testant cette démo (Terragrunt 1.1.6).
 - **Self-service** : pas de formulaire ni de `prompt`. `scaffold` produit un `terragrunt.hcl` à remplir. Une source locale (chemin simple ou `file://` sans `?ref`) a échoué à mon test (« destination exists and is not a symlink »), le `git::file://...//modules/x?ref=v1` fonctionne, avec deux avertissements « Failed to parse url » sans conséquence.
 - **« Bundle »** : il n'y a pas d'équivalent à un bundle versionné avec entrées typées ; l'équipe écrit ses blocs `unit` + `values`, et supprime le bloc `base` si elle n'en veut pas. Les `values` ne sont pas validés.
 - **Non reproduit ici** : les `tm_dynamic` (services du cluster), les fiches `catalog-info.yaml`, les scripts nommés, `--reverse`.
+
+## Liens
+
+- Terragrunt : code sur [github.com/gruntwork-io/terragrunt](https://github.com/gruntwork-io/terragrunt), documentation sur [docs.terragrunt.com](https://docs.terragrunt.com/)
+- OpenTofu : code sur [github.com/opentofu/opentofu](https://github.com/opentofu/opentofu), documentation sur [opentofu.org/docs](https://opentofu.org/docs/)
+- La démo Terramate de référence : [`../demo`](../demo)

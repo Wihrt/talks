@@ -131,3 +131,9 @@ Uniquement ce qui a été observé en testant cette démo (Atmos 1.232.0).
 - **`atmos init`** : sert à créer un projet entier depuis un exemple, pas à ajouter une équipe.
 - **Installation** : un binaire unique, comme Terramate.
 - **Non reproduit ici** : les `tm_dynamic` (services du cluster), les fiches `catalog-info.yaml`, les environnements dev/prod, `scaffold` en mode formulaire (pas de TTY dans mes tests).
+
+## Liens
+
+- Atmos : code sur [github.com/cloudposse/atmos](https://github.com/cloudposse/atmos), documentation sur [atmos.tools](https://atmos.tools/)
+- OpenTofu : code sur [github.com/opentofu/opentofu](https://github.com/opentofu/opentofu), documentation sur [opentofu.org/docs](https://opentofu.org/docs/)
+- La démo Terramate de référence : [`../demo`](../demo)

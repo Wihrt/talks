@@ -239,6 +239,8 @@ Repères : on a résolu un problème, on en a créé quatre · c'est exactement 
 
 <p class="fixline">CLI open source (MPL-2.0), écrite en Go. Terraform, OpenTofu et Terragrunt. Les fichiers <code>.tf</code> restent du Terraform pur.</p>
 
+<p class="links"><a href="https://github.com/terramate-io/terramate">github.com/terramate-io/terramate</a> · <a href="https://terramate.io/docs/">terramate.io/docs</a></p>
+
 <!--
 Repères : un binaire Go, rien à installer côté runtime · trois questions, et à chaque fois la réponse est oui, et ça va loin · on peut adopter Terramate sur un repo existant sans réécrire une ligne de Terraform
 
@@ -977,6 +979,8 @@ layout: section
 
 <p class="fixline">La vraie différence : le platform engineering. Et ils cohabitent : Terramate sait orchestrer un repo Terragrunt.</p>
 
+<p class="links"><a href="https://github.com/gruntwork-io/terragrunt">github.com/gruntwork-io/terragrunt</a> · <a href="https://docs.terragrunt.com/">docs.terragrunt.com</a></p>
+
 <!--
 Repères : pas une guerre de religion · deux philosophies : envelopper vs orchestrer · on peut combiner
 
@@ -1021,6 +1025,8 @@ Repères : pas une guerre de religion · deux philosophies : envelopper vs orche
 
 <p class="fixline">Un framework Ruby, peu actif : dernière version en octobre 2025.</p>
 
+<p class="links"><a href="https://github.com/boltops-tools/terraspace">github.com/boltops-tools/terraspace</a> · <a href="https://terraspace.cloud/docs/">terraspace.cloud/docs</a></p>
+
 <!--
 Repères : un framework, pas un orchestrateur · il compile du Terraform à partir de templates ERB · bien pensé en 2020, peu de mouvement depuis
 
@@ -1058,6 +1064,8 @@ Repères : un framework, pas un orchestrateur · il compile du Terraform à part
 </div>
 
 <p class="fixline">Le concurrent le plus complet, et très actif. Mais tout passe par du YAML.</p>
+
+<p class="links"><a href="https://github.com/cloudposse/atmos">github.com/cloudposse/atmos</a> · <a href="https://atmos.tools/">atmos.tools</a></p>
 
 <!--
 Repères : Cloud Posse, Apache-2.0 · des composants (root modules) et des stacks en YAML · c'est le vrai concurrent de Terramate, celui qu'on vous citera
@@ -1100,6 +1108,32 @@ Repères : on n'adopte pas tout d'un coup · orchestration d'abord, c'est le plu
   - Le code généré fait du bruit dans les MR et l'héritage des globals devient opaque sur une grosse arborescence (`debug show globals` obligatoire).
   - Les bundles sont jeunes : en préparant la démo, je suis tombé sur un bug en 0.17.3 (l'ordre des tags d'une stack créée par un bundle change entre deux `generate`, et le garde-fou bloque le `run`). Les versions 0.x cassent la compatibilité entre mineures.
 - **En une phrase** : pour un mono-repo Terraform avec beaucoup de stacks, c'est aujourd'hui l'outil que je recommande ; pour les bundles, j'attendrais un peu avant de le mettre devant toutes les équipes.
+-->
+
+---
+
+<p class="eyebrow">Pour aller plus loin</p>
+<h1>Les outils, leurs docs, les démos</h1>
+
+<table class="map">
+<thead><tr><th></th><th>Code</th><th>Documentation</th><th>Démo dans le repo</th></tr></thead>
+<tbody>
+<tr><td><b>Terramate</b></td><td><a href="https://github.com/terramate-io/terramate">github.com/terramate-io/terramate</a></td><td><a href="https://terramate.io/docs/">terramate.io/docs</a></td><td><code>terramate/demo</code></td></tr>
+<tr><td><b>Terragrunt</b></td><td><a href="https://github.com/gruntwork-io/terragrunt">github.com/gruntwork-io/terragrunt</a></td><td><a href="https://docs.terragrunt.com/">docs.terragrunt.com</a></td><td><code>terramate/demo-terragrunt</code></td></tr>
+<tr><td><b>Terraspace</b></td><td><a href="https://github.com/boltops-tools/terraspace">github.com/boltops-tools/terraspace</a></td><td><a href="https://terraspace.cloud/docs/">terraspace.cloud/docs</a></td><td><code>terramate/demo-terraspace</code></td></tr>
+<tr><td><b>Atmos</b></td><td><a href="https://github.com/cloudposse/atmos">github.com/cloudposse/atmos</a></td><td><a href="https://atmos.tools/">atmos.tools</a></td><td><code>terramate/demo-atmos</code></td></tr>
+<tr><td><b>OpenTofu</b></td><td><a href="https://github.com/opentofu/opentofu">github.com/opentofu/opentofu</a></td><td><a href="https://opentofu.org/docs/">opentofu.org/docs</a></td><td></td></tr>
+<tr><td><b>Terraform</b></td><td><a href="https://github.com/hashicorp/terraform">github.com/hashicorp/terraform</a></td><td><a href="https://developer.hashicorp.com/terraform/docs">developer.hashicorp.com/terraform/docs</a></td><td></td></tr>
+</tbody>
+</table>
+
+<p class="fixline">Les quatre démos : même infra, même scénario, hors ligne. <a href="https://github.com/Wihrt/talks">github.com/Wihrt/talks</a></p>
+
+<!--
+Repères : à laisser affichée pendant les questions · tout est dans le repo du talk
+
+- Chaque démo a un `prepare.sh` et un README avec le scénario et une section « Différences avec Terramate », tirée des tests.
+- Versions testées : Terramate 0.17.3, Terragrunt 1.1.6, Terraspace 2.2.20 (Ruby 3.3), Atmos 1.232.0, OpenTofu 1.10.
 -->
 
 ---

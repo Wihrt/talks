@@ -49,3 +49,5 @@
 .steps span{color:var(--muted)}
 .mini-list{margin:0;padding-left:1rem;font-size:.86rem;line-height:1.4}
 .mini-list li{margin-bottom:.35rem}
+.links{margin:.4rem 0 0;font-family:Archivo,sans-serif;font-size:.75rem;color:var(--muted)}
+.links a{color:var(--accent)}
