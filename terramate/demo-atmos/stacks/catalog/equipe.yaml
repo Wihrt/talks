@@ -1,0 +1,28 @@
+# Les briques d'un espace d'équipe. Abstraites : seules les équipes les instancient.
+# settings.zone désigne la zone ; elle sert à la fois à l'ordre et au subnet_id.
+# Valeur par défaut : Atmos évalue aussi les composants abstraits, sans zone il échoue.
+components:
+  terraform:
+    stockage-equipe:
+      metadata:
+        type: abstract
+      settings:
+        zone: paris
+      dependencies:
+        components:
+          - name: kubernetes
+          - name: "zone-{{ .settings.zone }}"
+      vars:
+        subnet_id: !terraform.state zone-{{ .settings.zone }} subnet_id
+
+    base-equipe:
+      metadata:
+        type: abstract
+      settings:
+        zone: paris
+      dependencies:
+        components:
+          - name: reseau
+          - name: "zone-{{ .settings.zone }}"
+      vars:
+        subnet_id: !terraform.state zone-{{ .settings.zone }} subnet_id

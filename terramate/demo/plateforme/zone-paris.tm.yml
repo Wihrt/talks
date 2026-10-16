@@ -1,0 +1,9 @@
+apiVersion: terramate.io/cli/v1
+kind: BundleInstance
+metadata:
+  name: paris
+spec:
+  source: /catalogue/bundles/zone/v1
+  inputs:
+    nom: paris
+    cidr: 10.0.1.0/24

@@ -1,0 +1,24 @@
+# Ce qu'écrit une équipe : du YAML, rien d'autre.
+import:
+  - catalog/equipe
+
+components:
+  terraform:
+    paiement-stockage:
+      metadata:
+        component: bucket
+        inherits: [stockage-equipe]
+      settings:
+        zone: paris
+      vars:
+        nom: paiement-donnees
+
+    paiement-base:
+      metadata:
+        component: base-de-donnees
+        inherits: [base-equipe]
+      settings:
+        zone: paris
+      vars:
+        nom: paiement
+        taille: M

@@ -1,0 +1,27 @@
+# atmos:template
+# Ce qu'écrit une équipe : du YAML, rien d'autre.
+import:
+  - catalog/equipe
+
+components:
+  terraform:
+    {{ .Config.equipe }}-stockage:
+      metadata:
+        component: bucket
+        inherits: [stockage-equipe]
+      settings:
+        zone: {{ .Config.zone }}
+      vars:
+        nom: {{ .Config.equipe }}-donnees
+{{- if .Config.base }}
+
+    {{ .Config.equipe }}-base:
+      metadata:
+        component: base-de-donnees
+        inherits: [base-equipe]
+      settings:
+        zone: {{ .Config.zone }}
+      vars:
+        nom: {{ .Config.equipe }}
+        taille: {{ .Config.taille_base }}
+{{- end }}

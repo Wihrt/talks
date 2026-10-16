@@ -1,0 +1,9 @@
+workflows:
+  previsualisation:
+    description: Plan de tous les composants, dans l'ordre
+    steps:
+      - command: terraform plan --all -s prod
+  deploiement:
+    description: Apply de tous les composants, dans l'ordre
+    steps:
+      - command: terraform apply --all -s prod -auto-approve
