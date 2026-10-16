@@ -106,7 +106,6 @@ Repères : un binaire Go, rien à installer côté runtime · trois piliers, qu'
 
 - Différence clé avec Terragrunt : Terramate n'enveloppe pas Terraform. Il ne réécrit pas la commande, il ne remplace pas `terraform`. On lance `terramate run -- terraform plan`, ou `tofu`, ou `tflint`, ou n'importe quoi.
 - Le code généré est commité dans le repo : ce qui est relu en MR, c'est ce qui tourne. Pas de génération cachée à l'exécution.
-- Il y a aussi Terramate Cloud, payant pour l'essentiel : on en parle à la fin, rapidement.
 - Version utilisée pour ce talk : 0.17.3.
 -->
 
@@ -168,7 +167,7 @@ Repères : une stack = un root module + un fichier stack.tm.hcl · un state par 
 
 - Une stack, c'est un dossier avec un bloc `stack`. Rien d'autre. Le Terraform à côté ne change pas.
 - Les tags servent partout : filtrer (`--tags`), ordonner (`after = ["tag:reseau"]`), cibler en CI.
-- L'id (un UUID) permet de déplacer une stack sans perdre son historique côté Cloud.
+- L'id (un UUID) reste stable quand on déplace une stack : c'est la référence durable, le chemin peut changer.
 - Les stacks peuvent s'imbriquer : un dossier parent stack, des enfants stacks.
 - `create --all-terraform` : c'est le chemin d'adoption. On pose Terramate sur un repo existant en une commande.
 -->
@@ -283,7 +282,7 @@ Repères : deux jobs, pas cinquante · la CI ne connaît pas la liste des stacks
 - Chez Additi, sur GitLab CI : plan sur les MR, apply sur main, tout via `--changed`.
 - Et un job planifié : la rotation des clés API Scaleway, les jours ouvrés à 6 h, sur les stacks taggées `rotating` (cf. le talk Scaleway). C'est exactement l'usage des tags.
 - Attention au clone en CI : la détection a besoin de l'historique git. Un clone trop superficiel (`depth: 1`) et il n'y a plus de base de comparaison.
-- Terramate fournit des exemples prêts pour GitHub Actions, GitLab CI, Bitbucket… et une intégration Cloud pour poster les plans en commentaire (ce qu'on peut aussi faire à la main).
+- Terramate fournit des exemples prêts pour GitHub Actions, GitLab CI, Bitbucket… Poster le plan en commentaire de MR, c'est à nous de l'outiller.
 -->
 
 ---
@@ -617,28 +616,7 @@ layout: section
 <h1>Le reste du paysage</h1>
 
 <!--
-**⏱ Fin : ~4 min**
--->
-
----
-
-<p class="eyebrow">L'offre commerciale</p>
-<h1>Terramate Cloud, en option</h1>
-
-<div class="cards">
-<div><b>Prévisualisations de PR</b><p>Le plan de chaque stack, lisible, en commentaire et dans un tableau de bord.</p></div>
-<div><b>Déploiements et drift</b><p>Qui a déployé quoi, quand. Détection de drift planifiée, alertes.</p></div>
-<div><b>Inventaire et politiques</b><p>Les ressources de toutes les stacks, et des contrôles de conformité.</p></div>
-</div>
-
-<p class="fixline">La CLI fait tout ce qu'on a vu sans le Cloud. Le Cloud ajoute la visibilité.</p>
-
-<!--
-Repères : modèle open core · la CLI est complète, le Cloud ajoute la couche visibilité et gouvernance · un plan gratuit existe pour démarrer
-
-- Côté CLI, les points d'intégration sont visibles : `--sync-deployment`, `--sync-drift-status`, `--sync-preview`, filtres `--drift-status`…
-- Sans le Cloud, on refait une partie à la main : poster les plans en commentaire de MR, un job planifié de `plan -detailed-exitcode` pour le drift.
-- Ne pas trop s'étendre : le talk porte sur l'outil, pas sur l'offre.
+**⏱ Fin : ~3 min**
 -->
 
 ---
@@ -695,7 +673,6 @@ Repères : on n'adopte pas tout d'un coup · orchestration d'abord, c'est le plu
   - Des briques importantes restent expérimentales (les scripts, le partage d'outputs) : on construit sa CI sur des `experiments`.
   - Le code généré fait du bruit dans les MR et l'héritage des globals devient opaque sur une grosse arborescence (`debug show globals` obligatoire).
   - Catalyst est jeune : en préparant la démo, je suis tombé sur un bug en 0.17.3 (l'ordre des tags d'une stack créée par un bundle change entre deux `generate`, et le garde-fou bloque le `run`). Les versions 0.x cassent la compatibilité entre mineures.
-  - Le modèle open core : le CLI pousse le Cloud (l'aide de la CLI en parle beaucoup). Rien de bloquant, mais il faut savoir ce qu'on refait soi-même (prévisualisations de plan, drift).
 - **En une phrase** : pour un mono-repo Terraform avec beaucoup de stacks, c'est aujourd'hui l'outil que je recommande ; pour Catalyst, j'attendrais un peu avant de le mettre devant toutes les équipes.
 -->
 
@@ -719,6 +696,6 @@ class: text-center
 - « Et Atlantis / Spacelift / env0 ? » → ce sont des plateformes d'exécution. Terramate CLI tourne dans la CI qu'on a déjà ; on peut même combiner.
 - « Le code généré, on le commite vraiment ? » → oui, c'est voulu : on relit ce qui tourne, et on peut sortir de Terramate sans rien casser.
 - « Catalyst, c'est payant ? » → non : depuis la 0.16, bundles, composants et `terramate ui` sont dans la CLI open source (MPL-2.0). Encore marqué bêta.
-- « Le Cloud coûte combien ? » → un plan gratuit (petites équipes, nombre de ressources limité), puis des offres payantes. Vérifier la page pricing avant le talk.
+- « Et Terramate Cloud ? » → je ne l'ai jamais utilisé, je ne peux pas en parler. Tout ce qu'on a vu tourne avec la CLI open source seule.
 - « Ça marche avec OpenTofu ? » → oui, la démo tourne sur OpenTofu.
 -->
