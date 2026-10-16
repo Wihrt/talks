@@ -847,6 +847,7 @@ Repères : LA partie la plus intéressante · un bundle publie des valeurs, un a
 - `tm_bundle(classe, alias)` et `tm_bundles(classe)` : les mêmes liens, depuis n'importe quel générateur.
 - L'alias : sans `define bundle { alias = … }`, il vaut `<dossier>:<nom>`. On le fixe pour que les équipes le lisent.
 - Piège : le lien ne crée PAS d'ordre d'exécution. Il faut `after = ["tag:zone"]` sur les stacks de l'équipe. Dans la démo, c'est fait.
+- Ne pas survendre : un export est calculé au `generate`, à partir des entrées du bundle. `subnet-paris` est une chaîne construite, pas l'ID réel lu dans un state. Pour une valeur connue seulement après l'`apply`, on repasse par une data source ou du remote state dans le code Terraform.
 - Pour aller plus loin : les environnements (`environment { id = "prod" promote_from = "dev" }`), une instance par environnement, et la promotion dev → prod dans `terramate ui`. Pas dans la démo.
 - Dans la démo : `plateforme/zone-paris.tm.yml` instancie la zone, `equipes/paiement.tm.yml` s'y lie.
 -->
@@ -967,7 +968,8 @@ layout: section
 <tr><td>Le code</td><td><code>terragrunt.hcl</code> + modules, résolu à l'exécution</td><td>Terraform pur + code généré, commité</td></tr>
 <tr><td>Ordre entre unités</td><td><code>dependency</code>, avec passage d'outputs</td><td><code>after</code> / <code>before</code>, sans passage d'outputs</td></tr>
 <tr><td>Ne lancer que le changé</td><td>natif, par git : <code>--filter-affected</code></td><td>natif, par git : <code>--changed</code></td></tr>
-<tr><td>Self-service</td><td><code>catalog</code> + <code>scaffold</code> : un modèle, une fois</td><td>bundles : entrées, exports, liens, régénérés</td></tr>
+<tr><td>Self-service</td><td>stacks : régénérées, sans formulaire, non commitées</td><td>bundles : formulaire, régénérés, commités</td></tr>
+<tr><td>Liens</td><td><code>dependency</code> : les vrais outputs du state</td><td>exports : calculés au <code>generate</code></td></tr>
 <tr><td>CI clé en main</td><td>Terragrunt Scale (payant au-delà de 25 unités)</td><td>à outiller soi-même</td></tr>
 <tr><td>Point fort</td><td>partir de zéro</td><td>reprendre l'existant : <code>create --all-terraform</code></td></tr>
 </tbody>
@@ -984,7 +986,11 @@ Repères : pas une guerre de religion · deux philosophies : envelopper vs orche
 - Le changé, des deux côtés : Terragrunt fait un `git diff` entre deux worktrees temporaires (`--filter '[main...HEAD]'`, ou `--filter-affected`), dans la CLI open source (MIT). Récent, en 2026. Terramate le fait depuis longtemps, modules locaux compris.
 - Une stack supprimée : Terragrunt la retrouve dans le diff et peut lancer un `plan -destroy` dans l'ancien worktree (`--filter-allow-destroy`). Terramate, non : on peut faire `--reverse` et `destroy` tant que le code est là, mais si on supprime le code de la stack, c'est trop tard. Il faut détruire avant de supprimer.
 - Le payant chez Gruntwork : Terragrunt Scale (Pipelines, détection de drift, Patcher). Gratuit jusqu'à 25 unités, Team à partir de 500 $/mois en annuel (page lue en octobre 2026).
-- Self-service : Terragrunt a `catalog` (une TUI pour parcourir les modules) et `scaffold` (génère un `terragrunt.hcl` depuis un modèle boilerplate). C'est une génération ponctuelle : le fichier est écrit une fois, avec des `TODO`. Les bundles Terramate restent vivants : l'instance est relue à chaque `generate`, se reconfigure, se promeut, et se lie aux autres. C'est là que Terramate est devant.
+- Self-service, côté Terragrunt, deux outils :
+  - `catalog` + `scaffold` (depuis la v0.54, décembre 2023) : une TUI pour parcourir les modules, et un `terragrunt.hcl` écrit une fois depuis un modèle boilerplate, avec des `TODO` à remplir. One-shot : le modèle évolue, les fichiers déjà créés non. Utile le premier jour, pas après.
+  - Les stacks (`terragrunt.stack.hcl`, blocs `unit` avec `values`) : régénérées par `terragrunt stack generate`, donc vivantes comme un bundle. Mais pas de formulaire ni de prompt, et le code généré va dans `.terragrunt-stack/`, que la doc conseille d'ignorer dans git : on ne relit pas en MR ce qui tourne.
+- Côté Terramate : un contrat typé, un formulaire (`terramate ui`), du code commité et relu. C'est là que Terramate est devant.
+- Les liens, à l'avantage de Terragrunt : `dependency` lit les vrais outputs du state à l'exécution. Un export de bundle Terramate est calculé au `generate`, depuis les entrées : pas d'ID réel issu d'un `apply`. Pour ça, Terramate repasse par des `data` ou du remote state.
 - Mon avis : Terramate est plus fort pour reprendre un existant (on pose une stack sur chaque root module, sans rien réécrire), Terragrunt est plus confortable pour partir de zéro.
 -->
 
