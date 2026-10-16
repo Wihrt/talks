@@ -49,6 +49,79 @@ Repères : OBS aujourd'hui · Terramate en prod chez Additi : tout le SI sur Sca
 -->
 ---
 
+<p class="eyebrow">Terraform, tout seul</p>
+<h1>Root module, module, state</h1>
+
+<div class="cols-code">
+<div>
+
+```text
+infra/                ← root module
+├── main.tf           ← ressources, appels de modules
+├── variables.tf
+├── outputs.tf
+├── backend.tf        ← où vit le state
+└── prod.tfvars
+modules/
+└── cluster/          ← module : réutilisable, sans state
+    ├── main.tf
+    └── variables.tf
+```
+
+</div>
+<div class="mini" style="grid-template-columns:1fr">
+<div><b>Root module</b><p>Le dossier où l'on lance <code>terraform plan</code>. Un root module, un state.</p></div>
+<div><b>Module</b><p>Une brique appelée par <code>source</code>. Il n'a pas de state : il vit dans celui de l'appelant.</p></div>
+<div><b>State · backend</b><p>Ce que Terraform sait du réel, stocké à distance, avec un verrou.</p></div>
+</div>
+</div>
+
+<p class="fixline">Terraform travaille sur un root module à la fois. Tout le reste en découle.</p>
+
+<!--
+**⏱ Le contexte : ~9 min**
+
+Repères : trois mots, et c'est tout ce qu'il faut pour la suite · l'unité de travail de Terraform, c'est le root module · une commande, un dossier, un state
+
+- Le root module : le dossier courant au moment du `terraform plan` (ou celui passé à `-chdir`). C'est lui qui a un backend, donc un state.
+- Le module : appelé avec `module "x" { source = "../modules/cluster" }`. Ses ressources atterrissent dans le state du root module qui l'appelle. Un module partagé par dix root modules, c'est dix states qui le contiennent.
+- Le state : la correspondance entre le code et les ressources réelles. Le backend (S3, GCS, azurerm…) le stocke et pose un verrou pendant un `apply`.
+- Je dis Terraform, ça vaut pour OpenTofu.
+-->
+
+---
+
+<p class="eyebrow">Structurer son code</p>
+<h1>Les environnements : trois écoles</h1>
+
+<div class="mini three">
+<div><b>Workspaces</b><p>Un dossier, un state par workspace : <code>terraform workspace select prod</code>.</p><span class="fix">le même code partout, impossible de faire diverger la structure</span></div>
+<div><b>Un tfvars par environnement</b><p><code>-var-file=prod.tfvars</code> et <code>-backend-config=prod.hcl</code>.</p><span class="fix">il ne faut pas se tromper de fichier</span></div>
+<div><b>Un dossier par environnement</b><p><code>envs/dev</code>, <code>envs/prod</code>, qui appellent les mêmes modules.</p><span class="fix">explicite, mais le dossier est dupliqué</span></div>
+</div>
+
+```text
+envs/
+├── dev/    main.tf  backend.tf  ← root module, state dev
+└── prod/   main.tf  backend.tf  ← root module, state prod
+modules/
+├── reseau/
+└── cluster/
+```
+
+<p class="fixline">Quelle que soit l'école : une commande, un root module, un state.</p>
+
+<!--
+Repères : ce qu'on trouve dans 90 % des repos · pas de bonne réponse universelle · le point commun : on reste sur un root module par exécution
+
+- Workspaces : pratique pour des copies identiques. Dès que prod a besoin d'une ressource que dev n'a pas, on se retrouve avec des `count = terraform.workspace == "prod" ? 1 : 0`.
+- tfvars + backend partiel : un seul dossier, la différence est dans les paramètres. Le risque, c'est l'erreur humaine : le tfvars de prod avec le backend de dev.
+- Dossier par environnement : c'est le plus lisible, et le plus courant. Chaque dossier est un root module qui appelle les modules partagés.
+- Ces trois écoles répondent à « comment avoir plusieurs environnements ». Elles ne répondent pas à « comment découper un environnement qui grossit ». C'est la suite.
+-->
+
+---
+
 <p class="eyebrow">Le point de départ</p>
 <h1>Un root module, un state, tout le SI</h1>
 
@@ -57,14 +130,109 @@ Repères : OBS aujourd'hui · Terramate en prod chez Additi : tout le SI sur Sca
 <p class="fixline">Le réflexe : découper en plusieurs root modules, chacun son state.</p>
 
 <!--
-**⏱ Le problème : ~5 min**
-
 Repères : tout le monde a commencé comme ça · ça marche, jusqu'au jour où ça ne marche plus · trois douleurs : lenteur, verrou, blast radius
 
 - Lenteur : chaque plan rafraîchit toutes les ressources. Des centaines d'appels API, des rate limits, des minutes.
 - Verrou : un seul state, un seul lock. Deux personnes ne peuvent pas appliquer en même temps, même sur des sujets sans rapport.
 - Blast radius : un `apply` sur le DNS peut, par erreur, toucher une base. Et les droits de la CI couvrent tout.
 - La réponse classique, et la bonne : découper. Un root module par périmètre, chacun son state.
+-->
+
+---
+
+<p class="eyebrow">Le découpage</p>
+<h1>Un root module par périmètre</h1>
+
+<div class="cols-code code-sm">
+<div>
+
+```text
+socle/
+├── reseau/          ← state socle/reseau
+└── kubernetes/      ← lit le state du réseau
+equipes/
+└── paiement/
+    ├── base/
+    └── stockage/
+modules/
+└── cluster/
+```
+
+</div>
+<div>
+<p class="lbl">socle/kubernetes/reseau.tf</p>
+
+```hcl
+data "terraform_remote_state" "reseau" {
+  backend = "s3"
+  config = {
+    bucket = "demo-tfstate"
+    region = "fr-par"
+    key    = "socle/reseau/terraform.tfstate"
+  }
+}
+
+module "cluster" {
+  source = "../../modules/cluster"
+  vpc_id = data.terraform_remote_state.reseau.outputs.vpc_id
+}
+```
+
+</div>
+</div>
+
+<p class="fixline">Le cluster dépend du réseau. Terraform lit son state, mais ne sait pas qu'il faut l'appliquer avant.</p>
+
+<!--
+Repères : techniquement, ça marche très bien · des states petits, rapides, des droits par périmètre · mais la dépendance n'est écrite nulle part où Terraform pourrait la voir
+
+- Chaque dossier a son backend, avec sa propre clé : quatre states indépendants.
+- Les dépendances passent par `terraform_remote_state` ou par des data sources (on relit le VPC par son nom). Dans les deux cas, c'est une lecture, pas une relation.
+- Si le réseau n'est pas encore appliqué, le plan du cluster échoue : l'output n'existe pas. C'est l'humain qui sait dans quel ordre lancer.
+-->
+
+---
+
+<p class="eyebrow">La limite</p>
+<h1>Terraform n'orchestre rien entre root modules</h1>
+
+<div class="cols-code" style="margin-top:.6rem">
+<div>
+<p class="lbl">Dans un root module</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="y">le graphe de dépendances</li>
+<li class="y">l'ordre de création</li>
+<li class="y">le parallélisme</li>
+<li class="y">un plan pour tout</li>
+</ul>
+</div>
+<div>
+<p class="lbl">Entre root modules</p>
+<ul class="yesno" style="font-size:1.1rem">
+<li class="n">l'ordre</li>
+<li class="n">ne lancer que ce qui a changé</li>
+<li class="n">le parallélisme</li>
+<li class="n">la configuration partagée</li>
+</ul>
+</div>
+</div>
+
+```bash
+for d in socle/reseau socle/kubernetes equipes/*/*; do   # l'ordre ? à la main
+  terraform -chdir="$d" init -input=false && terraform -chdir="$d" apply
+done
+```
+
+<p class="fixline">On peut tout faire soi-même : une boucle, un Makefile, un job CI par dossier. Mais c'est à nous de l'écrire, et de le tenir.</p>
+
+<!--
+Repères : LE message de cette partie · ce n'est pas impossible, c'est absent · Terraform s'arrête au root module, l'orchestration est un trou dans l'outillage
+
+- À l'intérieur d'un root module, Terraform construit un graphe : il sait que le cluster attend le VPC, et il applique en parallèle ce qui est indépendant (`-parallelism`, 10 par défaut).
+- Entre deux root modules, il n'y a pas de graphe. `terraform` ne connaît que le dossier courant.
+- Donc chacun écrit son orchestration : une boucle bash, un Makefile, un job GitLab par dossier avec des `needs`. Ça marche, mais l'ordre est codé en dur, la liste des dossiers aussi, et chaque nouveau root module oblige à toucher la CI.
+- HashiCorp a sa réponse : Terraform Stacks. Mais c'est lié à HCP Terraform / Terraform Enterprise, pas à la CLI seule, et ça n'existe pas dans OpenTofu.
+- C'est ce trou que comble Terramate.
 -->
 
 ---
@@ -83,7 +251,7 @@ Repères : tout le monde a commencé comme ça · ça marche, jusqu'au jour où 
 Repères : on a résolu un problème, on en a créé quatre · c'est exactement ce que Terramate adresse, dans cet ordre
 
 - Copier-coller : la clé du backend surtout. Une clé dupliquée, c'est deux root modules qui écrivent dans le même state. Ça arrive.
-- L'ordre : Terraform gère les dépendances DANS un root module, pas ENTRE root modules.
+- L'ordre : on vient de le voir, Terraform gère les dépendances DANS un root module, pas ENTRE root modules.
 - Quoi lancer : sans détection de changements, la CI planifie tout, ou un humain choisit. Les deux sont mauvais.
 - Self-service : c'est la partie platform engineering, on y vient avec Catalyst.
 -->
