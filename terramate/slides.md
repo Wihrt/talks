@@ -3,7 +3,7 @@ theme: default
 routerMode: hash
 title: "Terramate : orchestrer, générer, industrialiser son Terraform"
 info: |
-  Ce que résout Terramate quand Terraform passe à l'échelle : orchestration et détection de changements, génération de code, platform engineering avec Catalyst. Avec une démo.
+  Jusqu'où peut-on aller avec Terramate quand Terraform passe à l'échelle : orchestrer, générer, donner en self-service. Avec une démo.
 author: Arnaud Hatzenbuhler
 colorSchema: auto
 transition: fade
@@ -223,24 +223,24 @@ Repères : on a résolu un problème, on en a créé quatre · c'est exactement 
 - Copier-coller : la clé du backend surtout. Une clé dupliquée, c'est deux root modules qui écrivent dans le même state. Ça arrive.
 - L'ordre : on vient de le voir, Terraform gère les dépendances DANS un root module, pas ENTRE root modules.
 - Quoi lancer : sans détection de changements, la CI planifie tout, ou un humain choisit. Les deux sont mauvais.
-- Self-service : c'est la partie platform engineering, on y vient avec Catalyst.
+- Self-service : c'est la partie platform engineering, on y vient avec les bundles.
 -->
 
 ---
 
 <p class="eyebrow">Terramate</p>
-<h1>Un binaire, trois piliers</h1>
+<h1>Un binaire, trois questions</h1>
 
 <div class="pillars">
-<div style="--c:var(--accent)"><h3>Orchestration</h3><p>Des <b>stacks</b>, un ordre, la détection de changements par git. <code>terramate run</code> lance n'importe quelle commande, dans le bon ordre, seulement là où ça a changé.</p></div>
-<div style="--c:var(--ochre)"><h3>Génération de code</h3><p>Des <b>globals</b> hérités et des <code>generate_hcl</code> : le code répétitif est écrit une fois, généré partout, et commité.</p></div>
-<div style="--c:var(--brick)"><h3>Catalyst</h3><p>Des <b>composants</b> et des <b>bundles</b> : la plateforme publie un catalogue, les équipes l'instancient en quelques lignes de YAML.</p></div>
+<div style="--c:var(--accent)"><h3>Orchestrer ?</h3><p>Des <b>stacks</b>, un ordre, la détection de changements par git. Seulement là où ça a changé.</p></div>
+<div style="--c:var(--ochre)"><h3>Générer ?</h3><p>Des <b>globals</b>, <code>generate_hcl</code>, <code>tm_dynamic</code>, <code>generate_file</code> : écrit une fois, généré partout, commité.</p></div>
+<div style="--c:var(--brick)"><h3>Donner en self-service ?</h3><p>Des <b>bundles</b> qui se demandent, s'exportent et se lient : les équipes remplissent un formulaire.</p></div>
 </div>
 
 <p class="fixline">CLI open source (MPL-2.0), écrite en Go. Terraform, OpenTofu et Terragrunt. Les fichiers <code>.tf</code> restent du Terraform pur.</p>
 
 <!--
-Repères : un binaire Go, rien à installer côté runtime · trois piliers, qu'on prend à la carte · on peut adopter Terramate sur un repo existant sans réécrire une ligne de Terraform
+Repères : un binaire Go, rien à installer côté runtime · trois questions, et à chaque fois la réponse est oui, et ça va loin · on peut adopter Terramate sur un repo existant sans réécrire une ligne de Terraform
 
 - Différence clé avec Terragrunt : Terramate n'enveloppe pas Terraform. Il ne réécrit pas la commande, il ne remplace pas `terraform`. On lance `terramate run -- terraform plan`, ou `tofu`, ou `tflint`, ou n'importe quoi.
 - Le code généré est commité dans le repo : ce qui est relu en MR, c'est ce qui tourne. Pas de génération cachée à l'exécution.
@@ -251,8 +251,8 @@ Repères : un binaire Go, rien à installer côté runtime · trois piliers, qu'
 layout: section
 ---
 
-<p class="eyebrow">Pilier 1</p>
-<h1>Orchestration</h1>
+<p class="eyebrow">Chapitre 1</p>
+<h1>Est-ce qu'on peut orchestrer ?</h1>
 
 <!--
 **⏱ Orchestration : ~8 min**
@@ -427,11 +427,11 @@ Repères : deux jobs, pas cinquante · la CI ne connaît pas la liste des stacks
 layout: section
 ---
 
-<p class="eyebrow">Pilier 2</p>
-<h1>Génération de code</h1>
+<p class="eyebrow">Chapitre 2</p>
+<h1>Est-ce qu'on peut générer ?</h1>
 
 <!--
-**⏱ Génération : ~6 min**
+**⏱ Génération : ~8 min**
 -->
 
 ---
@@ -481,12 +481,10 @@ Repères : héritage par dossier · le plus proche gagne · pas de variable Terr
 generate_hcl "_backend.tf" {
   content {
     terraform {
-      required_version = global.tofu_version
-
       backend "s3" {
         bucket = "${global.organisation}-tfstate"
         region = global.region
-        key    = "${terramate.stack.path.relative}/terraform.tfstate"
+        key    = "${terramate.stack.path.relative}/tfstate"
       }
     }
   }
@@ -501,11 +499,10 @@ generate_hcl "_backend.tf" {
 // TERRAMATE: GENERATED AUTOMATICALLY DO NOT EDIT
 
 terraform {
-  required_version = "~> 1.10"
   backend "s3" {
     bucket = "demo-tfstate"
     region = "fr-par"
-    key    = "stacks/socle/kubernetes/terraform.tfstate"
+    key    = "stacks/socle/kubernetes/tfstate"
   }
 }
 ```
@@ -526,43 +523,148 @@ Repères : à gauche, ce qu'on écrit une fois · à droite, ce qui est génér�
 
 ---
 
-<p class="eyebrow">La boîte à outils</p>
-<h1>Générer juste ce qu'il faut, là où il faut</h1>
+<p class="eyebrow">tm_dynamic</p>
+<h1>Des blocs générés en boucle</h1>
 
-<div class="mini">
-<div><b><code>generate_hcl</code> · <code>generate_file</code></b><p>Du HCL validé et formaté, ou n'importe quel fichier : JSON, YAML, un <code>.tflint.hcl</code>…</p></div>
-<div><b><code>condition</code> · <code>stack_filter</code></b><p>Générer seulement pour certaines stacks : un tag, un chemin, une valeur de global.</p></div>
-<div><b><code>tm_dynamic</code> · <code>lets</code> · <code>tm_*</code></b><p>Blocs dynamiques, valeurs locales, et les fonctions Terraform préfixées : <code>tm_join</code>, <code>tm_try</code>…</p></div>
-<div><b><code>import</code></b><p>Partager des générateurs entre dossiers, ou entre repos : une bibliothèque de conventions.</p></div>
-</div>
+<div class="cols-code code-sm">
+<div>
+<p class="lbl">imports/services.tm.hcl (extrait)</p>
 
 ```hcl
-generate_hcl "_provider_kubernetes.tf" {
-  condition = tm_contains(terramate.stack.tags, "kubernetes")
+tm_dynamic "resource" {
+  for_each = global.services   # api, worker
+  iterator = svc
+  labels   = ["terraform_data", svc.key]
   content {
-    provider "kubernetes" { config_path = "~/.kube/${global.environnement}" }
+    input = {
+      port  = svc.value.port
+      acces = tm_ternary(svc.value.public, "internet", "interne")
+      env   = tm_hcl_expression("local.environnement")
+    }
+    tm_dynamic "lifecycle" {
+      condition = svc.value.public
+      content {
+        create_before_destroy = true
+      }
+    }
   }
 }
 ```
 
-<!--
-Repères : quatre outils, pas plus · le provider Kubernetes seulement là où il sert
+</div>
+<div>
+<p class="lbl">ce qu'on peut faire</p>
+<ul class="mini-list">
+<li><code>for_each</code> + <code>iterator</code> : un bloc par élément d'une global</li>
+<li><code>labels</code> : le type et le nom du bloc généré</li>
+<li><code>content</code> ou <code>attributes = {…}</code> : le corps du bloc</li>
+<li><code>condition</code> : le bloc existe, ou pas</li>
+<li>imbriqué : un <code>tm_dynamic</code> dans un <code>tm_dynamic</code></li>
+<li>les références Terraform (<code>local.x</code>, <code>var.x</code>) restent telles quelles</li>
+</ul>
+<p class="muted" style="font-size:.85rem">Dans la démo : un <code>terraform_data</code> et un <code>output</code> par service, depuis une map de globals.</p>
+</div>
+</div>
 
-- `generate_hcl` produit du HCL vérifié : une erreur de syntaxe casse le `generate`, pas l'`apply`.
-- `generate_file` pour tout le reste.
-- `condition` évalue par stack ; `stack_filter` filtre par chemin, plus simple à lire.
-- La limite : c'est puissant, donc on peut en faire trop. Mon conseil : générer le plomberie (backend, providers, versions), pas la logique métier. La logique, ça reste des modules Terraform.
+<!--
+Repères : le `dynamic` de Terraform, mais au moment de la génération · une boucle sur une global, des blocs de n'importe quel type · l'exemple complet est dans la démo
+
+- `tm_dynamic` prend un label : le type de bloc à générer (`resource`, `provider`, `module`, `output`, `lifecycle`, même `dynamic`).
+- `for_each` sur une liste ou une map, `iterator` pour nommer la variable (par défaut, le label). Les valeurs de l'itérateur et des globals sont inlinées dans le fichier généré.
+- Les références Terraform (`var.x`, `local.x`, `each.value`) sont gardées telles quelles : c'est l'évaluation partielle. On mélange les deux mondes sans conflit.
+- `attributes = { … }` : pour générer des attributs depuis une map, par exemple tout le `required_providers` d'une global.
+- `condition` : ici, `create_before_destroy` seulement pour les services publics.
+- Dans la démo (`imports/services.tm.hcl`) : aussi un `lets`, un `assert`, un `stack_filter`, et un second `tm_dynamic "output"` construit avec `attributes`.
+- Pourquoi pas un `dynamic` Terraform ? Le `dynamic` ne sait pas générer un `resource`, un `provider` ou un `module` : seulement des blocs imbriqués. `tm_dynamic` génère n'importe quel bloc, y compris des providers par région.
+- Limite : un bloc sur une ligne avec plusieurs arguments est refusé par le parseur. On écrit un argument par ligne.
+-->
+
+---
+
+<p class="eyebrow">generate_file</p>
+<h1>Pas que du HCL</h1>
+
+<div class="cols-code code-sm">
+<div>
+<p class="lbl">imports/catalogue.tm.hcl</p>
+
+```hcl
+generate_file "catalog-info.yaml" {
+  content = tm_yamlencode({
+    apiVersion = "backstage.io/v1alpha1"
+    kind       = "Component"
+    metadata = {
+      name        = terramate.stack.name
+      description = terramate.stack.description
+    }
+    spec = {
+      owner = global.proprietaire
+    }
+  })
+}
+```
+
+</div>
+<div>
+<p class="lbl">stacks/socle/kubernetes/catalog-info.yaml</p>
+
+```yaml
+"apiVersion": "backstage.io/v1alpha1"
+"kind": "Component"
+"metadata":
+  "description": "Cluster Kubernetes du socle"
+  "name": "kubernetes"
+"spec":
+  "owner": "plateforme"
+```
+
+</div>
+</div>
+
+<p class="fixline">N'importe quel fichier, dans chaque stack : YAML, JSON, <code>.tflint.hcl</code>, <code>CODEOWNERS</code>, un workflow de CI…</p>
+
+<!--
+Repères : generate_hcl pour le Terraform, generate_file pour tout le reste · le contenu est une chaîne : un template, ou une fonction d'encodage · même règles : commité, vérifié avant chaque run
+
+- Ici, une fiche Backstage par stack : le catalogue de services se remplit tout seul.
+- `tm_yamlencode`, `tm_jsonencode`, ou un heredoc avec interpolation. `tm_yamlencode` met des guillemets partout : du YAML valide, un peu lourd à l'œil.
+- La démo a aussi une `annotation` et un `type` : version complète dans `imports/catalogue.tm.hcl`.
+- Limite : le nom du fichier est un littéral, pas de `${…}` dedans. On choisit le dossier avec `stack_filter`, et on peut aussi générer hors des stacks (`context = root`).
+-->
+
+---
+
+<p class="eyebrow">La boîte à outils</p>
+<h1>Générer juste ce qu'il faut, là où il faut</h1>
+
+<div class="mini">
+<div><b><code>condition</code> · <code>stack_filter</code></b><p>Générer seulement pour certaines stacks : un tag, un chemin, une valeur de global.</p></div>
+<div><b><code>lets</code> · <code>tm_*</code></b><p>Des valeurs locales au générateur, et les fonctions Terraform préfixées : <code>tm_ternary</code>, <code>tm_try</code>…</p></div>
+<div><b><code>assert</code></b><p>Une règle vérifiée au <code>generate</code> : pas de région, pas de code.</p></div>
+<div><b><code>import</code></b><p>Partager des générateurs entre dossiers, ou entre repos : une bibliothèque de conventions.</p></div>
+</div>
+
+<p class="fixline">Générer la plomberie (backend, providers, conventions). La logique métier reste dans des modules Terraform.</p>
+
+<!--
+Repères : quatre outils autour des générateurs · ce qui se vérifie au generate ne casse pas à l'apply
+
+- `condition` évalue par stack ; `stack_filter` filtre par chemin, plus simple à lire, évalué avant.
+- `lets` : une valeur calculée une fois dans le générateur (`let.prefixe`).
+- `assert` : `assertion` + `message`, et `warning = true` pour un simple avertissement.
+- `tm_hcl_expression` : construire une référence Terraform à partir d'une chaîne (`var.${nom}_taille`).
+- Mon conseil : c'est puissant, donc on peut en faire trop. Générer le plomberie, pas la logique.
 -->
 
 ---
 layout: section
 ---
 
-<p class="eyebrow">Pilier 3</p>
-<h1>Catalyst</h1>
+<p class="eyebrow">Chapitre 3</p>
+<h1>Est-ce qu'on peut donner en self-service ?</h1>
 
 <!--
-**⏱ Catalyst : ~7 min**
+**⏱ Self-service : ~9 min**
 -->
 
 ---
@@ -570,15 +672,15 @@ layout: section
 <p class="eyebrow">Platform engineering</p>
 <h1>Les équipes ne devraient pas écrire de HCL</h1>
 
-<div class="diagram-wrap"><svg class="diagram" style="max-height:17rem" viewBox="0 0 760 250" role="img" aria-label="L&#x27;équipe plateforme écrit des composants, des briques Terraform, et les assemble en bundles. Une équipe produit instancie un bundle avec quelques lignes de YAML. terramate generate en tire les stacks et le code, que terramate run déploie."><defs><marker id="ca-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path></marker></defs><text class="s-title" x="20" y="22">Équipe plateforme</text><rect class="s-zone" x="10" y="32" width="390" height="120" rx="8"></rect><rect class="s-box" x="25" y="50" width="150" height="38" rx="5"></rect><text class="s-lbl" x="100" y="74" text-anchor="middle">composant · bucket</text><rect class="s-box" x="25" y="100" width="150" height="38" rx="5"></rect><text class="s-lbl" x="100" y="124" text-anchor="middle">composant · base</text><line class="s-line" x1="177" y1="69" x2="226" y2="88" marker-end="url(#ca-a)"></line><line class="s-line" x1="177" y1="119" x2="226" y2="102" marker-end="url(#ca-a)"></line><rect class="s-hub" x="230" y="66" width="155" height="56" rx="6"></rect><text class="s-title" x="307" y="90" text-anchor="middle">bundle</text><text class="s-txt" x="307" y="108" text-anchor="middle">« espace d'équipe »</text><text class="s-title" x="20" y="190">Équipe produit</text><rect class="s-okbox" x="25" y="200" width="200" height="40" rx="5"></rect><text class="s-lbl" x="125" y="225" text-anchor="middle">paiement.tm.yml · 10 lignes</text><line class="s-line" x1="227" y1="215" x2="300" y2="128" marker-end="url(#ca-a)" style="stroke-dasharray:4 4"></line><text class="s-lbl" x="268" y="188">instancie</text><line class="s-line" x1="387" y1="94" x2="456" y2="94" marker-end="url(#ca-a)"></line><rect class="s-box" x="460" y="60" width="140" height="68" rx="6"></rect><text class="s-title" x="530" y="88" text-anchor="middle">terramate</text><text class="s-title" x="530" y="106" text-anchor="middle">generate</text><line class="s-line" x1="602" y1="94" x2="636" y2="94" marker-end="url(#ca-a)"></line><rect class="s-box" x="640" y="44" width="110" height="34" rx="5"></rect><text class="s-lbl" x="695" y="66" text-anchor="middle">stack stockage</text><rect class="s-box" x="640" y="110" width="110" height="34" rx="5"></rect><text class="s-lbl" x="695" y="132" text-anchor="middle">stack base</text><text class="s-txt" x="695" y="170" text-anchor="middle">+ le code, commité</text></svg></div>
+<div class="diagram-wrap"><svg class="diagram" style="max-height:17rem" viewBox="0 0 760 250" role="img" aria-label="L&#x27;équipe plateforme écrit des composants, des briques Terraform, et les assemble en bundles. Une équipe produit instancie un bundle avec quelques lignes de YAML. terramate generate en tire les stacks et le code, que terramate run déploie."><defs><marker id="ca-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path></marker></defs><text class="s-title" x="20" y="22">Équipe plateforme</text><rect class="s-zone" x="10" y="32" width="390" height="120" rx="8"></rect><rect class="s-box" x="25" y="50" width="150" height="38" rx="5"></rect><text class="s-lbl" x="100" y="74" text-anchor="middle">composant · bucket</text><rect class="s-box" x="25" y="100" width="150" height="38" rx="5"></rect><text class="s-lbl" x="100" y="124" text-anchor="middle">composant · base</text><line class="s-line" x1="177" y1="69" x2="226" y2="88" marker-end="url(#ca-a)"></line><line class="s-line" x1="177" y1="119" x2="226" y2="102" marker-end="url(#ca-a)"></line><rect class="s-hub" x="230" y="66" width="155" height="56" rx="6"></rect><text class="s-title" x="307" y="90" text-anchor="middle">bundle</text><text class="s-txt" x="307" y="108" text-anchor="middle">« espace d'équipe »</text><text class="s-title" x="20" y="190">Équipe produit</text><rect class="s-okbox" x="25" y="200" width="200" height="40" rx="5"></rect><text class="s-lbl" x="125" y="225" text-anchor="middle">paiement.tm.yml · 11 lignes</text><line class="s-line" x1="227" y1="215" x2="300" y2="128" marker-end="url(#ca-a)" style="stroke-dasharray:4 4"></line><text class="s-lbl" x="268" y="188">instancie</text><line class="s-line" x1="387" y1="94" x2="456" y2="94" marker-end="url(#ca-a)"></line><rect class="s-box" x="460" y="60" width="140" height="68" rx="6"></rect><text class="s-title" x="530" y="88" text-anchor="middle">terramate</text><text class="s-title" x="530" y="106" text-anchor="middle">generate</text><line class="s-line" x1="602" y1="94" x2="636" y2="94" marker-end="url(#ca-a)"></line><rect class="s-box" x="640" y="44" width="110" height="34" rx="5"></rect><text class="s-lbl" x="695" y="66" text-anchor="middle">stack stockage</text><rect class="s-box" x="640" y="110" width="110" height="34" rx="5"></rect><text class="s-lbl" x="695" y="132" text-anchor="middle">stack base</text><text class="s-txt" x="695" y="170" text-anchor="middle">+ le code, commité</text></svg></div>
 
 <p class="fixline">La plateforme publie un catalogue. Les équipes le consomment, sans connaître Terraform.</p>
 
 <!--
-Repères : Catalyst = le volet platform engineering · d'abord un binaire à part en bêta privée (fin 2025), fusionné dans la CLI open source en 0.16 (février 2026) · encore marqué bêta dans la doc · composant, bundle, instance
+Repères : le volet platform engineering de Terramate · dans la CLI open source depuis la 0.16 (février 2026), après une bêta privée sous le nom « Catalyst » · encore marqué bêta dans la doc · composant, bundle, instance
 
-- Avant Catalyst : on faisait ça avec des modules Terraform et de la génération. Ça marche, mais l'équipe produit écrit quand même du HCL, et connaît la structure du repo.
-- Avec Catalyst, trois niveaux :
+- Avant les bundles : on faisait ça avec des modules Terraform et de la génération. Ça marche, mais l'équipe produit écrit quand même du HCL, et connaît la structure du repo.
+- Avec les bundles, trois niveaux :
   - **composant** : une brique d'infra, avec des entrées typées. Écrit par la plateforme.
   - **bundle** : un assemblage de composants en stacks, avec ses propres entrées, ses conditions, ses chemins. Écrit par la plateforme. C'est le « produit » du catalogue.
   - **instance** : un fichier YAML ou HCL qui remplit les entrées d'un bundle. Écrit par l'équipe produit.
@@ -656,8 +758,103 @@ Repères : à gauche, la brique · à droite, le produit · le bundle décide de
 
 ---
 
+<p class="eyebrow">Demander</p>
+<h1>Des entrées typées, et la question à poser</h1>
+
+<div class="cols-code code-sm">
+<div>
+
+```hcl
+define bundle input "taille_base" {
+  type        = string
+  description = "Gabarit de la base"
+  default     = "S"
+  prompt {
+    text    = "Gabarit de la base"
+    options = ["S", "M", "L"]
+  }
+}
+```
+
+</div>
+<div>
+<p class="lbl">ce que décrit une entrée</p>
+<ul class="mini-list">
+<li><code>type</code> : <code>string</code>, <code>bool</code>, <code>list</code>, <code>object</code>… ou un autre bundle</li>
+<li>sans <code>default</code>, l'entrée est obligatoire</li>
+<li><code>prompt</code> : le texte, les <code>options</code>, <code>multiline</code>, <code>multiselect</code>, une <code>condition</code> d'affichage</li>
+<li><code>immutable</code> : on ne la change plus après création</li>
+</ul>
+<p class="muted" style="font-size:.85rem"><code>terramate ui</code> lit les <code>prompt</code> et en fait un formulaire.</p>
+</div>
+</div>
+
+<!--
+Repères : le contrat du bundle, c'est ses entrées · le prompt, c'est l'expérience développeur · le formulaire est généré, pas codé
+
+- `type` : les types HCL classiques, des objets avec des sous-attributs (`attribute "x" { required = true }`), et `bundle("classe")` pour référencer un autre bundle (slide suivante).
+- `prompt.options` accepte une expression : par exemple la liste des zones existantes, avec `tm_bundles("demo.io/zone")`.
+- `prompt.condition` : n'afficher la question que si elle a du sens (pas de gabarit si pas de base). Lu dans le code de la 0.17.3, pas testé en démo.
+- `immutable` : le nom d'une équipe, typiquement. On ne renomme pas un chemin de state par mégarde.
+- Attention : `prompt`, `options` en attribut direct sont dépréciés depuis la 0.17. C'est le bloc `prompt { }`.
+-->
+
+---
+
+<p class="eyebrow">Exporter et lier</p>
+<h1>Des bundles qui se parlent</h1>
+
+<div class="cols-code code-sm">
+<div>
+<p class="lbl">bundle zone : la plateforme expose</p>
+
+```hcl
+define bundle {
+  alias = bundle.input.nom.value      # « paris »
+}
+
+define bundle export "subnet_id" {
+  value = "subnet-${bundle.input.nom.value}"
+}
+```
+
+</div>
+<div>
+<p class="lbl">bundle espace-equipe : l'équipe consomme</p>
+
+```hcl
+define bundle input "zone" {
+  type = bundle("demo.io/zone")
+  prompt {
+    text = "Zone réseau"
+  }
+}
+
+subnet_id = bundle.input.zone.value.export.subnet_id.value
+```
+
+</div>
+</div>
+
+<p class="fixline">L'équipe choisit « paris » dans une liste. Le sous-réseau arrive tout seul dans son code.</p>
+
+<!--
+Repères : LA partie la plus intéressante · un bundle publie des valeurs, un autre les consomme · on compose des briques de plateforme au lieu de copier des identifiants
+
+- `define bundle export "x" { value = … }` : ce que le bundle rend public. Ici, l'identifiant du sous-réseau et le CIDR de la zone.
+- Côté consommateur : une entrée de type `bundle("demo.io/zone")`. Dans le YAML, on écrit l'alias (`zone: paris`). Dans `terramate ui`, c'est une liste des zones existantes.
+- La valeur est un objet : `alias`, `class`, `input`, `export`… On lit `.export.subnet_id.value` (attention, `export` au singulier, et `.value` au bout).
+- `tm_bundle(classe, alias)` et `tm_bundles(classe)` : les mêmes liens, depuis n'importe quel générateur.
+- L'alias : sans `define bundle { alias = … }`, il vaut `<dossier>:<nom>`. On le fixe pour que les équipes le lisent.
+- Piège : le lien ne crée PAS d'ordre d'exécution. Il faut `after = ["tag:zone"]` sur les stacks de l'équipe. Dans la démo, c'est fait.
+- Pour aller plus loin : les environnements (`environment { id = "prod" promote_from = "dev" }`), une instance par environnement, et la promotion dev → prod dans `terramate ui`. Pas dans la démo.
+- Dans la démo : `plateforme/zone-paris.tm.yml` instancie la zone, `equipes/paiement.tm.yml` s'y lie.
+-->
+
+---
+
 <p class="eyebrow">Ce qu'écrit une équipe</p>
-<h1>10 lignes de YAML</h1>
+<h1>11 lignes de YAML</h1>
 
 <div class="cols-code">
 <div>
@@ -672,6 +869,7 @@ spec:
   source: /catalogue/bundles/espace-equipe/v1
   inputs:
     equipe: paiement
+    zone: paris
     base: true
     taille_base: M
 ```
@@ -714,7 +912,7 @@ layout: section
 <h1>Sur le terminal</h1>
 
 <!--
-**⏱ Démo : ~10 min.** Scénario complet et commandes : `terramate/demo/README.md`.
+**⏱ Démo : ~11 min.** Scénario complet et commandes : `terramate/demo/README.md`.
 
 Préparation : `./terramate/demo/prepare.sh /tmp/terramate-demo`, terminal en gros caractères, thème clair. Garder un second terminal où la démo est déjà jouée jusqu'à l'étape 5 (plan B).
 -->
@@ -726,10 +924,10 @@ Préparation : `./terramate/demo/prepare.sh /tmp/terramate-demo`, terminal en gr
 
 <div class="steps">
 <span class="n">1</span><b>Les stacks et l'ordre</b><span><code>terramate list --run-order</code></span>
-<span class="n">2</span><b>La génération</b><span><code>terramate generate</code>, et le premier garde-fou</span>
+<span class="n">2</span><b>La génération</b><span><code>generate</code>, <code>tm_dynamic</code>, <code>generate_file</code>, le premier garde-fou</span>
 <span class="n">3</span><b>L'orchestration</b><span><code>run --parallel</code>, <code>script run</code>, <code>--tags</code></span>
 <span class="n">4</span><b>La détection</b><span>une branche, un module, <code>list --changed --why</code></span>
-<span class="n">5</span><b>Catalyst</b><span>une nouvelle équipe avec <code>terramate ui</code>, puis <code>run --changed</code></span>
+<span class="n">5</span><b>Le self-service</b><span>une équipe avec <code>terramate ui</code>, liée à la zone <code>paris</code></span>
 </div>
 
 <p class="fixline">OpenTofu, des <code>terraform_data</code>, un backend local : tout tourne hors ligne.</p>
@@ -738,10 +936,10 @@ Préparation : `./terramate/demo/prepare.sh /tmp/terramate-demo`, terminal en gr
 Repères : annoncer les 5 étapes, puis basculer sur le terminal · revenir sur cette slide entre les étapes si besoin
 
 1. `terramate list --run-order` : reseau, puis kubernetes. Pas encore d'équipe : les stacks du bundle naissent au `generate`.
-2. `terramate generate`, montrer `_terramate_backend.tf`, relancer `list --run-order` : les stacks de paiement sont là, à leur place. Lancer `terramate run -- tofu init` : refusé, fichiers non commités. Commit, relancer.
+2. `terramate generate`, montrer `_terramate_backend.tf`, puis `imports/services.tm.hcl` et le `_terramate_services.tf` généré (un `terraform_data` et un `output` par service), puis un `catalog-info.yaml`. Relancer `list --run-order` : la zone `paris` et les stacks de paiement sont là, à leur place. Lancer `terramate run -- tofu init` : refusé, fichiers non commités. Commit, relancer.
 3. `terramate run --parallel 4 -- tofu apply -auto-approve`, puis `terramate script run deploiement`, puis `terramate list --tags socle`.
 4. Branche `montee-k8s`, passer 1.34 en 1.35, commit, `terramate list --changed --why` : une stack. Puis une modif du module : la stack qui l'appelle, avec la raison.
-5. Branche `equipe-catalogue`, `terramate ui` (ou le sed du README), `terramate generate`, commit, `terramate list --changed` : seulement les stacks de la nouvelle équipe. `run --changed -- tofu apply`.
+5. Branche `equipe-catalogue`, montrer l'export de la zone, `terramate ui` (ou le sed du README) en choisissant la zone `paris`, `terramate generate`, montrer `subnet_id = "subnet-paris"` dans le code généré, commit, `terramate list --changed` : seulement les stacks de la nouvelle équipe. `run --changed -- tofu apply`.
 
 Si le TUI pose problème en live : le sed du README fait la même chose.
 -->
@@ -768,37 +966,43 @@ layout: section
 <tr><td>Rapport à Terraform</td><td>l'enveloppe : <code>terragrunt plan</code></td><td>le lance : <code>terramate run -- tofu plan</code></td></tr>
 <tr><td>Le code</td><td><code>terragrunt.hcl</code> + modules, résolu à l'exécution</td><td>Terraform pur + code généré, commité</td></tr>
 <tr><td>Ordre entre unités</td><td><code>dependency</code>, avec passage d'outputs</td><td><code>after</code> / <code>before</code>, sans passage d'outputs</td></tr>
-<tr><td>Ne lancer que le changé</td><td>à outiller (filtres, scripts)</td><td>natif, par git, modules compris</td></tr>
-<tr><td>Self-service</td><td>non</td><td>Catalyst</td></tr>
-<tr><td>Adoption</td><td>restructurer le repo</td><td><code>create --all-terraform</code></td></tr>
+<tr><td>Ne lancer que le changé</td><td>natif, par git : <code>--filter-affected</code></td><td>natif, par git : <code>--changed</code></td></tr>
+<tr><td>Self-service</td><td><code>catalog</code> + <code>scaffold</code> : un modèle, une fois</td><td>bundles : entrées, exports, liens, régénérés</td></tr>
+<tr><td>CI clé en main</td><td>Terragrunt Scale (payant au-delà de 25 unités)</td><td>à outiller soi-même</td></tr>
+<tr><td>Point fort</td><td>partir de zéro</td><td>reprendre l'existant : <code>create --all-terraform</code></td></tr>
 </tbody>
 </table>
 
-<p class="fixline">Et ils cohabitent : Terramate sait orchestrer un repo Terragrunt.</p>
+<p class="fixline">La vraie différence : le platform engineering. Et ils cohabitent : Terramate sait orchestrer un repo Terragrunt.</p>
 
 <!--
 Repères : pas une guerre de religion · deux philosophies : envelopper vs orchestrer · on peut combiner
 
 - Le vrai point fort de Terragrunt : `dependency` qui passe les outputs d'une unité à l'autre. Chez Terramate, l'équivalent (output sharing) existe mais reste à part ; on fait souvent avec des data sources ou du remote state.
 - Le vrai point fort de Terramate : la détection par git, et le fait que le code reste du Terraform standard. Un nouvel arrivant lit du Terraform, pas un DSL.
-- `terramate create --all-terragrunt` importe un repo Terragrunt existant, et l'orchestration suit les dépendances Terragrunt.
+- `terramate create --all-terragrunt` importe un repo Terragrunt existant, et l'orchestration suit les dépendances Terragrunt. La détection de changements suit les `include`, `dependency` et fichiers lus. Mon avis : ça dépanne, mais ce n'est pas terrible.
+- Le changé, des deux côtés : Terragrunt fait un `git diff` entre deux worktrees temporaires (`--filter '[main...HEAD]'`, ou `--filter-affected`), dans la CLI open source (MIT). Récent, en 2026. Terramate le fait depuis longtemps, modules locaux compris.
+- Une stack supprimée : Terragrunt la retrouve dans le diff et peut lancer un `plan -destroy` dans l'ancien worktree (`--filter-allow-destroy`). Terramate, non : on peut faire `--reverse` et `destroy` tant que le code est là, mais si on supprime le code de la stack, c'est trop tard. Il faut détruire avant de supprimer.
+- Le payant chez Gruntwork : Terragrunt Scale (Pipelines, détection de drift, Patcher). Gratuit jusqu'à 25 unités, Team à partir de 500 $/mois en annuel (page lue en octobre 2026).
+- Self-service : Terragrunt a `catalog` (une TUI pour parcourir les modules) et `scaffold` (génère un `terragrunt.hcl` depuis un modèle boilerplate). C'est une génération ponctuelle : le fichier est écrit une fois, avec des `TODO`. Les bundles Terramate restent vivants : l'instance est relue à chaque `generate`, se reconfigure, se promeut, et se lie aux autres. C'est là que Terramate est devant.
+- Mon avis : Terramate est plus fort pour reprendre un existant (on pose une stack sur chaque root module, sans rien réécrire), Terragrunt est plus confortable pour partir de zéro.
 -->
 
 ---
 
 <p class="eyebrow">À retenir</p>
-<h1>Trois piliers, à la carte</h1>
+<h1>Trois fois oui, à la carte</h1>
 
 <div class="cards">
 <div style="border-color:var(--accent)"><b>Orchestration</b><p>Découpez vos states. Terramate garde l'ordre et ne lance que ce qui a changé.</p></div>
 <div style="border-color:var(--ochre)"><b>Génération</b><p>La plomberie s'écrit une fois. Le code généré est commité, donc relu.</p></div>
-<div style="border-color:var(--brick)"><b>Catalyst</b><p>Un catalogue pour les équipes, sans portail à opérer. Jeune, mais prometteur.</p></div>
+<div style="border-color:var(--brick)"><b>Self-service</b><p>Des bundles qui se demandent et se lient, sans portail à opérer. Jeune, mais prometteur.</p></div>
 </div>
 
 <p class="fixline">On commence par <code>terramate create --all-terraform</code> et <code>run --changed</code>. Le reste vient quand on en a besoin.</p>
 
 <!--
-Repères : on n'adopte pas tout d'un coup · orchestration d'abord, c'est le plus gros gain · génération ensuite · Catalyst quand le nombre d'équipes le justifie
+Repères : on n'adopte pas tout d'un coup · orchestration d'abord, c'est le plus gros gain · génération ensuite · les bundles quand le nombre d'équipes le justifie
 
 **Mon avis, à l'oral uniquement (pas à l'écran).** Proposition à reformuler avec tes mots :
 
@@ -810,8 +1014,8 @@ Repères : on n'adopte pas tout d'un coup · orchestration d'abord, c'est le plu
 - **Ce qui me gêne**
   - Des briques importantes restent expérimentales (les scripts, le partage d'outputs) : on construit sa CI sur des `experiments`.
   - Le code généré fait du bruit dans les MR et l'héritage des globals devient opaque sur une grosse arborescence (`debug show globals` obligatoire).
-  - Catalyst est jeune : en préparant la démo, je suis tombé sur un bug en 0.17.3 (l'ordre des tags d'une stack créée par un bundle change entre deux `generate`, et le garde-fou bloque le `run`). Les versions 0.x cassent la compatibilité entre mineures.
-- **En une phrase** : pour un mono-repo Terraform avec beaucoup de stacks, c'est aujourd'hui l'outil que je recommande ; pour Catalyst, j'attendrais un peu avant de le mettre devant toutes les équipes.
+  - Les bundles sont jeunes : en préparant la démo, je suis tombé sur un bug en 0.17.3 (l'ordre des tags d'une stack créée par un bundle change entre deux `generate`, et le garde-fou bloque le `run`). Les versions 0.x cassent la compatibilité entre mineures.
+- **En une phrase** : pour un mono-repo Terraform avec beaucoup de stacks, c'est aujourd'hui l'outil que je recommande ; pour les bundles, j'attendrais un peu avant de le mettre devant toutes les équipes.
 -->
 
 ---
@@ -833,7 +1037,7 @@ class: text-center
 - « On peut passer des outputs d'une stack à l'autre ? » → oui, l'output sharing (blocs `output`/`input`, `run --enable-sharing`), mais c'est encore à part. Sinon : data sources ou remote state.
 - « Et Atlantis / Spacelift / env0 ? » → ce sont des plateformes d'exécution. Terramate CLI tourne dans la CI qu'on a déjà ; on peut même combiner.
 - « Le code généré, on le commite vraiment ? » → oui, c'est voulu : on relit ce qui tourne, et on peut sortir de Terramate sans rien casser.
-- « Catalyst, c'est payant ? » → non : depuis la 0.16, bundles, composants et `terramate ui` sont dans la CLI open source (MPL-2.0). Encore marqué bêta.
+- « Les bundles, c'est payant ? » → non : depuis la 0.16, bundles, composants et `terramate ui` sont dans la CLI open source (MPL-2.0). Encore marqué bêta.
 - « Et Terramate Cloud ? » → je ne l'ai jamais utilisé, je ne peux pas en parler. Tout ce qu'on a vu tourne avec la CLI open source seule.
 - « Ça marche avec OpenTofu ? » → oui, la démo tourne sur OpenTofu.
 -->

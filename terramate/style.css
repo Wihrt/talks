@@ -36,11 +36,16 @@
 .cmds code{white-space:nowrap}
 .cmds span{color:var(--muted)}
 .cols-code{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;align-items:start}
+/* une colonne de grille ne doit pas s'élargir à sa plus longue ligne de code */
+.cols-code>div{min-width:0}
 .cols-code .lbl{text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:Archivo,sans-serif;font-size:.68rem;font-weight:700;margin:0 0 .2rem}
 .slidev-layout pre code{background:transparent;padding:0;font-size:inherit;border-radius:0}
 .slidev-layout pre.shiki{font-size:.86rem}
-.code-sm pre.shiki{font-size:.7rem;line-height:1.35}
+/* Slidev impose font-size et line-height du code en !important : passer par ses variables */
+.code-sm{--slidev-code-font-size:10px;--slidev-code-line-height:1.4}
 .steps{display:grid;grid-template-columns:2rem 13rem 1fr;gap:.75rem .6rem;align-items:baseline;margin-top:1rem;font-size:1.05rem}
 .steps .n{color:var(--ochre);font-family:Archivo,sans-serif;font-weight:800}
 .steps b{font-family:Archivo,sans-serif}
 .steps span{color:var(--muted)}
+.mini-list{margin:0;padding-left:1rem;font-size:.86rem;line-height:1.4}
+.mini-list li{margin-bottom:.35rem}

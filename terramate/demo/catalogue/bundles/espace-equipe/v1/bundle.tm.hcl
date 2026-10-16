@@ -14,6 +14,14 @@ define bundle input "equipe" {
   }
 }
 
+define bundle input "zone" {
+  type        = bundle("demo.io/zone")
+  description = "Zone réseau de l'équipe"
+  prompt {
+    text = "Zone réseau"
+  }
+}
+
 define bundle input "base" {
   type        = bool
   description = "L'équipe a besoin d'une base PostgreSQL"
@@ -44,13 +52,14 @@ define bundle stack "stockage" {
     path  = "/stacks/equipes/${bundle.input.equipe.value}/stockage"
     name  = "${bundle.input.equipe.value}-stockage"
     tags  = ["equipe", bundle.input.equipe.value]
-    after = ["tag:kubernetes"]
+    after = ["tag:kubernetes", "tag:zone"]
   }
 
   component "bucket" {
     source = "/catalogue/composants/bucket/v1"
     inputs {
-      nom = "${bundle.input.equipe.value}-donnees"
+      nom       = "${bundle.input.equipe.value}-donnees"
+      subnet_id = bundle.input.zone.value.export.subnet_id.value
     }
   }
 }
@@ -62,14 +71,15 @@ define bundle stack "base" {
     path  = "/stacks/equipes/${bundle.input.equipe.value}/base"
     name  = "${bundle.input.equipe.value}-base"
     tags  = ["equipe", bundle.input.equipe.value]
-    after = ["tag:reseau"]
+    after = ["tag:reseau", "tag:zone"]
   }
 
   component "base" {
     source = "/catalogue/composants/base-de-donnees/v1"
     inputs {
-      nom    = bundle.input.equipe.value
-      taille = bundle.input.taille_base.value
+      nom       = bundle.input.equipe.value
+      taille    = bundle.input.taille_base.value
+      subnet_id = bundle.input.zone.value.export.subnet_id.value
     }
   }
 }

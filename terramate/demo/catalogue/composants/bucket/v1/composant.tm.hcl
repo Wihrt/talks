@@ -17,6 +17,11 @@ define component input "versionne" {
   default     = true
 }
 
+define component input "subnet_id" {
+  type        = string
+  description = "Sous-réseau de la zone, fourni par le bundle zone"
+}
+
 generate_hcl "main.tf" {
   content {
     resource "terraform_data" "bucket" {
@@ -24,6 +29,7 @@ generate_hcl "main.tf" {
         nom       = "${global.organisation}-${component.input.nom.value}"
         region    = global.region
         versionne = component.input.versionne.value
+        subnet_id = component.input.subnet_id.value
       }
     }
 

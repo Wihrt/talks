@@ -6,5 +6,6 @@ spec:
   source: /catalogue/bundles/espace-equipe/v1
   inputs:
     equipe: paiement
+    zone: paris
     base: true
     taille_base: M

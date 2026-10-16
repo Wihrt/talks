@@ -16,6 +16,11 @@ define component input "taille" {
   default     = "S"
 }
 
+define component input "subnet_id" {
+  type        = string
+  description = "Sous-réseau de la zone, fourni par le bundle zone"
+}
+
 generate_hcl "main.tf" {
   content {
     resource "terraform_data" "base" {
@@ -24,6 +29,7 @@ generate_hcl "main.tf" {
         moteur  = "PostgreSQL-17"
         gabarit = component.input.taille.value
         region  = global.region
+        subnet  = component.input.subnet_id.value
       }
     }
 
