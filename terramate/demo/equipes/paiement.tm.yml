@@ -1,0 +1,10 @@
+apiVersion: terramate.io/cli/v1
+kind: BundleInstance
+metadata:
+  name: paiement
+spec:
+  source: /catalogue/bundles/espace-equipe/v1
+  inputs:
+    equipe: paiement
+    base: true
+    taille_base: M
