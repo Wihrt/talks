@@ -1,6 +1,6 @@
 [tools]
 node = "24"
-aube = "v2.9.0"
+aube = "v2.10.0"
 
 [tasks.install]
 description = "Installe les dépendances (Slidev, thème, Chromium pour l'export)"
