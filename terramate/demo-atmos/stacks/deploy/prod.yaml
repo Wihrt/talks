@@ -1,0 +1,10 @@
+# La stack « prod » : un fichier qui assemble le socle, la zone et les équipes.
+import:
+  - mixins/commun
+  - catalog/reseau
+  - catalog/kubernetes
+  - plateforme/zone-paris
+  - equipes/*          # une nouvelle équipe = un nouveau fichier dans equipes/
+
+vars:
+  environnement: prod

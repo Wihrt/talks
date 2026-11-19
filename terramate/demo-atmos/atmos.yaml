@@ -1,0 +1,37 @@
+# Config du projet Atmos : où sont les composants, les stacks, et comment lancer OpenTofu.
+base_path: "."
+
+components:
+  terraform:
+    base_path: components/terraform
+    command: tofu                       # OpenTofu au lieu de terraform
+    auto_generate_backend_file: true    # écrit backend.tf.json dans le dossier du composant
+    init_run_reconfigure: true
+    workspaces_enabled: false           # workspace « default » : le backend.local.path est alors respecté
+    deploy_run_init: true
+
+stacks:
+  base_path: stacks
+  included_paths: ["deploy/**/*"]       # une stack = un fichier de deploy/ ; le reste est importé
+  excluded_paths: []
+  name_template: "{{ .vars.environnement }}"
+
+workflows:
+  base_path: workflows
+
+templates:
+  settings:
+    enabled: true
+    sprig:
+      enabled: true
+
+logs:
+  file: /dev/stderr
+  level: Info
+
+# Le gabarit « nouvelle équipe » : atmos scaffold generate equipe .
+scaffold:
+  templates:
+    equipe:
+      description: Espace d'équipe (stockage, base) rattaché à une zone
+      source: ./scaffolds/equipe

@@ -1,0 +1,12 @@
+# La zone partagée, portée par la plateforme. Les équipes s'y rattachent.
+components:
+  terraform:
+    zone-paris:
+      metadata:
+        component: zone
+      dependencies:
+        components:
+          - name: reseau
+      vars:
+        nom: paris
+        cidr: 10.0.1.0/24

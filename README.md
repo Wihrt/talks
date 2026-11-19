@@ -5,6 +5,7 @@ Les supports de mes talks, en [Slidev](https://sli.dev). Un dossier = un talk.
 | Talk | Événement |
 |---|---|
 | [`migrer-sur-scaleway`](./migrer-sur-scaleway) | REX meetup — *Une randonnée pas si tranquille : migrer sur Scaleway* (GCP → Scaleway, 2026) |
+| [`terramate`](./terramate) | Talk technique — *Terramate : orchestrer, générer, industrialiser son Terraform* (avec une [démo](./terramate/demo)) |
 
 ## Prérequis
 

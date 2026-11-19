@@ -1,0 +1,5 @@
+# Versions testées. Terraspace compile une extension C++ (eventmachine) :
+# il faut un compilateur C/C++ et make sur la machine (gcc/g++/make, ou zig + make).
+[tools]
+ruby = "3.3"
+opentofu = "1.10"
