@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "@slidev/cli": "^53.1.0",
+    "@slidev/cli": "^53.2.0",
     "@slidev/theme-default": "^0.25.0",
     "playwright-chromium": "^1.65.1"
   }
